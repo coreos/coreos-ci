@@ -1,0 +1,231 @@
+# This is a fork of the `jenkins-ephemeral` OpenShift template because we need
+# to be able to pass in more information to the Jenkins pod, such as env vars,
+# secrets, configmaps, etc...
+
+apiVersion: v1
+kind: Template
+labels:
+  app: coreos-ci
+  template: coreos-ci-jenkins-template
+metadata:
+  annotations:
+    description: |-
+      Jenkins service for CoreOS CI.
+    iconClass: icon-jenkins
+    openshift.io/display-name: CoreOS CI Jenkins
+    openshift.io/documentation-url: https://github.com/coreos/coreos-ci
+    openshift.io/support-url: https://github.com/coreos/coreos-ci
+    openshift.io/provider-display-name: CoreOS CI
+    tags: fcos,jenkins,coreos,ci
+  name: coreos-ci-jenkins
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: http://{.spec.host}{.spec.path}
+    name: ${JENKINS_SERVICE_NAME}
+  spec:
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: ${JENKINS_SERVICE_NAME}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${JENKINS_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${JENKINS_SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${JENKINS_SERVICE_NAME}
+      spec:
+        containers:
+        - capabilities: {}
+          env:
+          - name: OPENSHIFT_ENABLE_OAUTH
+            value: ${ENABLE_OAUTH}
+          - name: OPENSHIFT_ENABLE_REDIRECT_PROMPT
+            value: "true"
+          - name: OPENSHIFT_JENKINS_JVM_ARCH
+            value: ${JVM_ARCH}
+          - name: KUBERNETES_MASTER
+            value: https://kubernetes.default:443
+          - name: KUBERNETES_TRUST_CERTIFICATES
+            value: "true"
+          - name: JNLP_SERVICE_NAME
+            value: ${JNLP_SERVICE_NAME}
+          # DELTA: point c-as-c plugin to config map files; see below
+          - name: CASC_JENKINS_CONFIG
+            value: /var/lib/jenkins/configuration-as-code
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 30
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 420
+            timeoutSeconds: 3
+          name: jenkins
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: 8080
+            initialDelaySeconds: 3
+            timeoutSeconds: 3
+          resources:
+            limits:
+              memory: ${MEMORY_LIMIT}
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/jenkins
+            name: ${JENKINS_SERVICE_NAME}-data
+          # DELTA: mount c-as-c config map
+          - name: ${JENKINS_SERVICE_NAME}-casc-cfg
+            mountPath: /var/lib/jenkins/configuration-as-code
+            readOnly: true
+          # DELTA: mount GitHub OAuth secrets
+          - name: github-oauth
+            mountPath: /var/run/secrets/github-oauth
+            readOnly: true
+          # DELTA: mount GitHub webhook shared secret
+          - name: github-webhook-shared-secret
+            mountPath: /var/run/secrets/github-webhook-shared-secret
+            readOnly: true
+          # DELTA: mount GitHub coreosbot token
+          - name: github-coreosbot-token
+            mountPath: /var/run/secrets/github-coreosbot-token
+            readOnly: true
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        serviceAccountName: ${JENKINS_SERVICE_NAME}
+        volumes:
+        - emptyDir:
+            medium: ""
+          name: ${JENKINS_SERVICE_NAME}-data
+        # DELTA: add a configmap -- see config/jcasc.yaml
+        - name: ${JENKINS_SERVICE_NAME}-casc-cfg
+          configMap:
+            name: jenkins-casc-cfg
+        # DELTA: add the GitHub OAuth creds
+        - name: github-oauth
+          secret:
+            secretName: github-oauth
+        # DELTA: add the GitHub OAuth creds
+        - name: github-webhook-shared-secret
+          secret:
+            secretName: github-webhook-shared-secret
+        # DELTA: add the GitHub coreosbot token
+        - name: github-coreosbot-token
+          secret:
+            secretName: github-coreosbot-token
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - jenkins
+        from:
+          kind: ImageStreamTag
+          name: ${JENKINS_IMAGE_STREAM_TAG}
+          namespace: ${NAMESPACE}
+        lastTriggeredImage: ""
+      type: ImageChange
+    - type: ConfigChange
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    annotations:
+      serviceaccounts.openshift.io/oauth-redirectreference.jenkins: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"${JENKINS_SERVICE_NAME}"}}'
+    name: ${JENKINS_SERVICE_NAME}
+- apiVersion: v1
+  groupNames: null
+  kind: RoleBinding
+  metadata:
+    name: ${JENKINS_SERVICE_NAME}_edit
+  roleRef:
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: ${JENKINS_SERVICE_NAME}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${JNLP_SERVICE_NAME}
+  spec:
+    ports:
+    - name: agent
+      nodePort: 0
+      port: 50000
+      protocol: TCP
+      targetPort: 50000
+    selector:
+      name: ${JENKINS_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      service.alpha.openshift.io/dependencies: '[{"name": "${JNLP_SERVICE_NAME}",
+        "namespace": "", "kind": "Service"}]'
+      service.openshift.io/infrastructure: "true"
+    name: ${JENKINS_SERVICE_NAME}
+  spec:
+    ports:
+    - name: web
+      nodePort: 0
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      name: ${JENKINS_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+parameters:
+- description: The name of the OpenShift Service exposed for the Jenkins container.
+  displayName: Jenkins Service Name
+  name: JENKINS_SERVICE_NAME
+  value: jenkins
+- description: The name of the service used for master/slave communication.
+  displayName: Jenkins JNLP Service Name
+  name: JNLP_SERVICE_NAME
+  value: jenkins-jnlp
+- description: Whether to enable OAuth OpenShift integration. If false, the static
+    account 'admin' will be initialized with the password 'password'.
+  displayName: Enable OAuth in Jenkins
+  name: ENABLE_OAUTH
+  # DELTA: changed from true; we're using GitHub OAuth
+  value: "false"
+- description: Whether Jenkins runs with a 32 bit (i386) or 64 bit (x86_64) JVM.
+  displayName: Jenkins JVM Architecture
+  name: JVM_ARCH
+  value: i386
+- description: Maximum amount of memory the container can use.
+  displayName: Memory Limit
+  # DELTA: changed from 512Mi
+  name: MEMORY_LIMIT
+  value: 2Gi
+- description: The OpenShift Namespace where the Jenkins ImageStream resides.
+  displayName: Jenkins ImageStream Namespace
+  name: NAMESPACE
+  # DELTA: changed from openshift
+  value: coreos-ci
+- description: Name of the ImageStreamTag to be used for the Jenkins image.
+  displayName: Jenkins ImageStreamTag
+  name: JENKINS_IMAGE_STREAM_TAG
+  # DELTA: changed from jenkins:latest
+  # https://github.com/coreos/fedora-coreos-pipeline/pull/70
+  value: jenkins:2

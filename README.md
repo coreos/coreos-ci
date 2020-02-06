@@ -9,44 +9,32 @@ It may end up being merged into
 https://github.com/coreos/fedora-coreos-pipeline in the
 future.
 
-### projectatomic-ci
+CoreOS CI uses the same S2I builder defined in the
+[Fedora CoreOS pipeline](https://github.com/coreos/fedora-coreos-pipeline/tree/master/jenkins/master).
+All build config and plugin changes should happen there.
 
-Upstream CI jobs are currently created manually and running
-in https://jenkins-projectatomic-ci.apps.ci.centos.org/ .
-Only jlebon and cgwalters can create jobs there (the new
-Jenkins will use GitHub OAuth to delegate administration to
-the whole CoreOS team).
+### Enrolling a new repo for upstream CI
 
-To create a new job by copying:
-- Sign in as jlebon or walters
-- `New Item`
-- Name it the same as the repository, e.g. `ignition`
-- Copy from `rpm-ostree`
-- `OK`
-- In the job configuration, clear the description and change
-  the target repo, e.g. `ignition`
-- `Save`
+To enroll a repo, simply open a patch to have it added to
+the list in `seed-github-ci.Jenkinsfile`.
 
-To create a new job without copying:
-- Branch Sources -> GitHub
-    - Credentials -> coreosbot
-    - fill in Owner and Repo
-    - Discover pull requests from forks -> Trust ->
-      Contributors
-    - Add Property -> Pipeline Branch speed/durability
-      override -> Performance-optimized
-- Build Configuration -> Script Path -> .cci.jenkinsfile
-- Scan Multibranch Pipeline Triggers -> Check Periodically
-  -> 1 day
-- Orphaned Item Strategy -> Discard old items (keep checked)
-- `Save`
+### Adding a job
 
-For push notifications:
-- Add a new webhook on the target repo settings:
-    - Payload URL: https://jenkins-projectatomic-ci.apps.ci.centos.org/github-webhook/
-    - Content Type: application/json
-    - Shared Secret: get it from the OpenShift secret
-      `github-webhook-shared-secret` in `coreos-ci` or
-      `projectatomic-ci`
-    - Keep SSL verification enabled
-    - Just select `Pull Requests` & `Pushes`
+While CoreOS CI is today mostly focused on GitHub PR
+testing, it is flexible enough to contain other related
+jobs.
+
+Any Jenkinsfile added in the `jobs/` directory will be
+converted into a pipeline job.
+
+### Repo structure
+
+The `jenkins/config` directory contains
+[Configuration as Code](https://github.com/jenkinsci/configuration-as-code-plugin)
+fragments to configure Jenkins on startup.
+
+The `jobs/` directory contains Jenkinsfiles which are
+converted to pipeline jobs.
+
+The `manifests/` directory contains the OpenShift template
+for creating Jenkins itself.

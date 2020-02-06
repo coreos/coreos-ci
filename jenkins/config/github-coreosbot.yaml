@@ -1,0 +1,10 @@
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+        - usernamePassword:
+            scope: GLOBAL
+            id: github-coreosbot-token
+            username: coreosbot
+            password: ${github-coreosbot-token/token}
+            description: GitHub coreosbot token
