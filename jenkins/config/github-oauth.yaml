@@ -1,0 +1,26 @@
+jenkins:
+  securityRealm:
+    github:
+      githubWebUri: https://github.com
+      githubApiUri: https://api.github.com
+      clientID: ${github-oauth/client-id}
+      clientSecret: ${github-oauth/client-secret}
+      oauthScopes: read:org,user:email,repo
+  authorizationStrategy:
+    globalMatrix:
+      permissions:
+      # only the fedora-coreos-tools and fedora-coreos-releng teams can fully
+      # administer Jenkins
+      - "Overall/Administer:coreos*fedora-coreos-tools"
+      - "Overall/Administer:coreos*fedora-coreos-releng"
+      # allow anyone in coreos/ostreedev/openshift to cancel and retrigger runs
+      - "Job/Build:coreos"
+      - "Job/Build:ostreedev"
+      - "Job/Build:openshift"
+      - "Job/Cancel:coreos"
+      - "Job/Cancel:ostreedev"
+      - "Job/Cancel:openshift"
+      # anonymous people can only see logs
+      - "Overall/Read:anonymous"
+      - "Job/Read:anonymous"
+      - "View/Read:anonymous"
