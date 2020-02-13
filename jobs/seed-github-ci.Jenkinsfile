@@ -1,6 +1,7 @@
 /* this job defines all the multibranch jobs for upstream CI repos */
 
 repos = [
+    "coreos/ignition-dracut"
     // "coreos/coreos-assembler",
     // "coreos/fedora-coreos-config",
     // "coreos/fedora-coreos-pipeline",
