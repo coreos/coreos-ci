@@ -1,4 +1,4 @@
-This repository will contain OpenShift manifests, Jenkins
+This repository contains OpenShift manifests, Jenkins
 configuration as code, job DSLs, and other configs for
 powering upstream CI of various CoreOS-related GitHub repos.
 The main Jenkins instance is at:
@@ -13,11 +13,6 @@ CoreOS CI uses the same S2I builder defined in the
 [Fedora CoreOS pipeline](https://github.com/coreos/fedora-coreos-pipeline/tree/master/jenkins/master).
 All build config and plugin changes should happen there.
 
-### Enrolling a new repo for upstream CI
-
-To enroll a repo, simply open a patch to have it added to
-the list in `seed-github-ci.Jenkinsfile`.
-
 ### Adding a job
 
 While CoreOS CI is today mostly focused on GitHub PR
@@ -26,6 +21,9 @@ jobs.
 
 Any Jenkinsfile added in the `jobs/` directory will be
 converted into a pipeline job.
+
+For information about writing upstream CI jobs, see
+[README-upstream-ci.md](README-upstream-ci.md).
 
 ### Repo structure
 
