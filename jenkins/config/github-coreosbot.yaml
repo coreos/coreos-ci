@@ -8,3 +8,8 @@ credentials:
             username: coreosbot
             password: ${github-coreosbot-token/token}
             description: GitHub coreosbot token
+        - string:
+            scope: GLOBAL
+            id: github-coreosbot-token-string
+            secret: ${github-coreosbot-token/token}
+            description: GitHub coreosbot token as a string
