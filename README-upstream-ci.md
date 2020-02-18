@@ -15,8 +15,10 @@ simply adding the `team-bots` team.
 
 ### Writing a Jenkinsfile
 
-Jobs in the `.cci.jenkinsfile` should heavily leverage the
-custom steps in
+Upstream repos must have a Jenkins pipeline in a file called
+`.cci.jenkinsfile` at the root of the repo.
+
+This pipeline should heavily leverage the custom steps in
 [coreos-ci-lib](https://github.com/coreos/coreos-ci-lib).
 This is a global shared library which all jobs automatically
 have access to.
@@ -26,7 +28,7 @@ software locally, build FCOS with its results overlayed and
 run kola:
 
 ```groovy
-// Documentation at https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md.
+// Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
 
 cosaPod {
     checkout scm
