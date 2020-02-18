@@ -2,7 +2,7 @@ unclassified:
   globalLibraries:
     libraries:
       - name: coreos
-        defaultVersion: master
+        defaultVersion: coreos-ci
         implicit: true
         retriever:
           modernSCM:
