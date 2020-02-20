@@ -2,7 +2,7 @@
 
 repos = [
     "coreos/ignition-dracut"
-    // "coreos/coreos-assembler",
+    "coreos/coreos-assembler",
     // "coreos/fedora-coreos-config",
     // "coreos/fedora-coreos-pipeline",
     // "coreos/fedora-coreos-streams",
