@@ -6,8 +6,8 @@ repos = [
     "coreos/fedora-coreos-pipeline",
     "coreos/fedora-coreos-streams",
     "coreos/ignition",
-    "coreos/ignition-dracut"
-    //"coreos/rpm-ostree",
+    "coreos/ignition-dracut",
+    "coreos/rpm-ostree"
     //"ostreedev/ostree
 ]
 
