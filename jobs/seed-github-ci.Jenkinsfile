@@ -7,8 +7,8 @@ repos = [
     "coreos/fedora-coreos-streams",
     "coreos/ignition",
     "coreos/ignition-dracut",
-    "coreos/rpm-ostree"
-    //"ostreedev/ostree
+    "coreos/rpm-ostree",
+    "ostreedev/ostree
 ]
 
 node { repos.each { repo ->
