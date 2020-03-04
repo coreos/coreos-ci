@@ -1,13 +1,20 @@
 /* this job defines all the multibranch jobs for upstream CI repos */
 
 repos = [
+    "coreos/afterburn",
     "coreos/coreos-assembler",
+    "coreos/coreos-installer",
+    "coreos/coreos-ci",
+    "coreos/coreos-ci-lib",
+    "coreos/fcct",
+    "coreos/fedora-coreos-cincinnati",
     "coreos/fedora-coreos-config",
     "coreos/fedora-coreos-pipeline",
     "coreos/fedora-coreos-streams",
     "coreos/ignition",
     "coreos/ignition-dracut",
     "coreos/rpm-ostree",
+    "coreos/zincati",
     "ostreedev/ostree"
 ]
 
