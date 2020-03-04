@@ -8,7 +8,7 @@ repos = [
     "coreos/ignition",
     "coreos/ignition-dracut",
     "coreos/rpm-ostree",
-    "ostreedev/ostree
+    "ostreedev/ostree"
 ]
 
 node { repos.each { repo ->
