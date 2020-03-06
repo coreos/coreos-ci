@@ -5,7 +5,7 @@ jenkins:
       githubApiUri: https://api.github.com
       clientID: ${github-oauth/client-id}
       clientSecret: ${github-oauth/client-secret}
-      oauthScopes: read:org,user:email,repo
+      oauthScopes: read:org,user:email
   authorizationStrategy:
     globalMatrix:
       permissions:
