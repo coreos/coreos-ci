@@ -7,6 +7,7 @@ repos = [
     "coreos/coreos-ci",
     "coreos/coreos-ci-lib",
     "coreos/fcct",
+    "fedora-coreos-releng-automation",
     "coreos/fedora-coreos-cincinnati",
     "coreos/fedora-coreos-config",
     "coreos/fedora-coreos-pipeline",
