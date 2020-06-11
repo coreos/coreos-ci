@@ -15,6 +15,7 @@ repos = [
     "coreos/ignition",
     "coreos/ignition-dracut",
     "coreos/rpm-ostree",
+    "coreos/ssh-key-dir",
     "coreos/zincati",
     "ostreedev/ostree"
 ]
