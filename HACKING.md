@@ -15,19 +15,29 @@ Create the JCasC configmap:
 oc create configmap jenkins-casc-cfg --from-file=jenkins/config
 ```
 
-Create the GitHub OAuth secret (these creds currently live
-in jlebon's "CoreOS CI" GitHub OAuth App settings, which he
-will soon transfer to the coreos/ org).
+Create the GitHub OAuth secret (these creds live in the
+"CoreOS CI" GitHub OAuth App settings) using `oc create -f`:
 
 ```
-oc secret new github-oauth client-id=github-oauth-client-id client-secret=github-oauth-client-secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-oauth
+stringData:
+  client-id: $ID
+  client-secret: $SECRET
 ```
 
 Create the GitHub webhook shared secret (XXX: jlebon to put
-it in the shared secrets repo):
+it in the shared secrets repo) using `oc create -f`:
 
 ```
-oc secret new github-webhook-shared-secret secret=github-webhook-shared-secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-webhook-shared-secret
+stringData:
+  secret: $SECRET
 ```
 
 Create the CoreOS Bot (coreosbot) GitHub token (these creds
@@ -35,7 +45,12 @@ are available from bgilbert; XXX: jlebon or bgilbert to put
 it in the shared secrets repo):
 
 ```
-oc secret new github-coreosbot-token token=coreosbot-github-token
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-coreosbot-token
+stringData:
+  token: TOKEN
 ```
 
 Now we can set up the Jenkins S2I builds. We use the same
@@ -43,10 +58,12 @@ settings as the FCOS pipeline to ensure that the environment
 is the same (notably, Jenkins and plugin versions):
 
 ```
-oc process -l app=coreos-ci -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/master/manifests/jenkins-s2i.yaml | oc create -f -
+oc process -l app=coreos-ci \
+    --param "JENKINS_JOBS_URL=https://github.com/coreos/coreos-ci" \
+    -f https://raw.githubusercontent.com/jlebon/fedora-coreos-pipeline/ocp4/manifests/jenkins-s2i.yaml | oc create -f -
 ```
 
-If working on your own fork/branch, you can use the
+If working on your own fork/branch, you can point the
 `JENKINS_JOBS_URL` and `JENKINS_JOBS_REF` parameters to
 override the repo in which to look for jobs, and/or
 `JENKINS_S2I_URL` and `JENKINS_S2I_REF` to override the repo
