@@ -3,7 +3,7 @@ configuration as code, job DSLs, and other configs for
 powering upstream CI of various CoreOS-related GitHub repos.
 The main Jenkins instance is at:
 
-https://jenkins-coreos-ci.apps.ci.centos.org/
+https://jenkins-coreos-ci.apps.ocp.ci.centos.org/
 
 It may end up being merged into
 https://github.com/coreos/fedora-coreos-pipeline in the
