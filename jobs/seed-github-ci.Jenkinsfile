@@ -34,9 +34,6 @@ node { repos.each { repo ->
                     repository('${name}')
                     checkoutCredentialsId("github-coreosbot-token")
                     scanCredentialsId("github-coreosbot-token")
-                    traits {
-                         wipeWorkspaceTrait()
-                    }
                 }
             }
             factory {
@@ -78,6 +75,9 @@ node { repos.each { repo ->
                             strategyId(1)
                             // allow testing of PRs from project contributors
                             trust(class: 'org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait\$TrustContributors')
+                        }
+                        'jenkins.plugins.git.traits.WipeWorkspaceTrait' {
+                          extension(class: 'hudson.plugins.git.extensions.impl.WipeWorkspace')
                         }
                     }
                 }
