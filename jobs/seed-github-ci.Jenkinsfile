@@ -34,6 +34,9 @@ node { repos.each { repo ->
                     repository('${name}')
                     checkoutCredentialsId("github-coreosbot-token")
                     scanCredentialsId("github-coreosbot-token")
+                    traits {
+                         wipeWorkspaceTrait()
+                    }
                 }
             }
             factory {
