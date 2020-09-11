@@ -77,9 +77,6 @@ node { repos.each { repo ->
                             // allow testing of PRs from project contributors
                             trust(class: 'org.jenkinsci.plugins.github_branch_source.ForkPullRequestDiscoveryTrait\$TrustContributors')
                         }
-                        'jenkins.plugins.git.traits.WipeWorkspaceTrait' {
-                          extension(class: 'hudson.plugins.git.extensions.impl.WipeWorkspace')
-                        }
                     }
                 }
             }
