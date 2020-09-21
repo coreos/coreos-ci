@@ -2,6 +2,7 @@
 
 repos = [
     "coreos/afterburn",
+    "coreos/bootupd",
     "coreos/console-login-helper-messages",
     "coreos/coreos-assembler",
     "coreos/coreos-installer",
