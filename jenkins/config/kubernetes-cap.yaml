@@ -1,0 +1,16 @@
+groovy:
+  - script: >
+      import jenkins.model.Jenkins;
+
+      CONTAINER_CAP = 15;
+
+      cloud = Jenkins.instance.clouds.find { it.name == "openshift" };
+      if (cloud == null) {
+        throw new Exception("Failed to find cloud openshift");
+      }
+
+      if (cloud.containerCap != CONTAINER_CAP) {
+        cloud.containerCap = CONTAINER_CAP;
+        Jenkins.instance.save();
+        println("Set openshift cloud container cap to $CONTAINER_CAP");
+      }
