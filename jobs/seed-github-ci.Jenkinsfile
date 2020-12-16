@@ -80,6 +80,11 @@ node { repos.each { repo ->
                         }
                     }
                 }
+                it / sources / data / 'jenkins.branch.BranchSource' / buildStrategies {
+                    'jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl' {
+                        ignoreTargetOnlyChanges(true)
+                    }
+                }
             }
         }
     """
