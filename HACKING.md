@@ -41,8 +41,9 @@ stringData:
 ```
 
 Create the CoreOS Bot (coreosbot) GitHub token (these creds
-are available from bgilbert; XXX: jlebon or bgilbert to put
-it in the shared secrets repo):
+correspond to the "CoreOS CI" token of coreobot, with just
+`public_repo` and `admin:repo_hook`; XXX: jlebon or bgilbert
+to put it in the shared secrets repo):
 
 ```
 apiVersion: v1
