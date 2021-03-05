@@ -1,5 +1,20 @@
 ## Upstream CI
 
+### Interacting
+
+#### Logging in
+
+The Jenkins instance uses GitHub authentication. As long as
+you are a member of either `coreos`, `ostreedev` or
+`openshift`, you should be able to log in and
+start/stop/retry jobs.
+
+#### Retrying jobs
+
+In order to retry the failed job, from the GitHub PR, click
+through to the details of the failed job and use the retry
+"loopy icon" at the top right of the job page.
+
 ### Enrolling a new repo for upstream CI
 
 To enroll a repo, simply open a patch to have it added to
