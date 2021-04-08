@@ -2,7 +2,7 @@ groovy:
   - script: >
       import jenkins.model.Jenkins;
 
-      CONTAINER_CAP = 15;
+      CONTAINER_CAP = 6;
 
       cloud = Jenkins.instance.clouds.find { it.name == "openshift" };
       if (cloud == null) {
