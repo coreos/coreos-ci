@@ -46,11 +46,13 @@ node { repos.each { repo ->
             orphanedItemStrategy {
                 discardOldItems()
             }
-            triggers {
-                // manually rescan once a day; this is important so that it
-                // picks up on deleted branches/PRs which can be cleaned up
-                periodic(60 * 24)
-            }
+            // XXX: disabled for now until we get NFS back because it causes old
+            // PRs to get retested everytime Jenkins is torn down
+            //triggers {
+            //    // manually rescan once a day; this is important so that it
+            //    // picks up on deleted branches/PRs which can be cleaned up
+            //    periodic(60 * 24)
+            //}
             // things which don't seem to have a nice DSL :(
             configure {
                 it / sources / data / 'jenkins.branch.BranchSource' / strategy {
