@@ -40,16 +40,17 @@ objects:
     to:
       kind: Service
       name: ${JENKINS_SERVICE_NAME}
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${JENKINS_SERVICE_NAME}
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${VOLUME_CAPACITY}
+# DELTA: we use our own custom PVC
+#- apiVersion: v1
+#  kind: PersistentVolumeClaim
+#  metadata:
+#    name: ${JENKINS_SERVICE_NAME}
+#  spec:
+#    accessModes:
+#    - ReadWriteOnce
+#    resources:
+#      requests:
+#        storage: ${VOLUME_CAPACITY}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -147,7 +148,8 @@ objects:
         volumes:
         - name: ${JENKINS_SERVICE_NAME}-data
           persistentVolumeClaim:
-            claimName: ${JENKINS_SERVICE_NAME}
+            # DELTA: changed from ${JENKINS_SERVICE_NAME} because we use a custom PVC
+            claimName: jenkins-local
         # DELTA: add a configmap -- see config/jcasc.yaml
         - name: ${JENKINS_SERVICE_NAME}-casc-cfg
           configMap:
