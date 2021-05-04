@@ -70,7 +70,7 @@ is the same (notably, Jenkins and plugin versions):
 ```
 oc process -l app=coreos-ci \
     --param "JENKINS_JOBS_URL=https://github.com/coreos/coreos-ci" \
-    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/master/manifests/jenkins-s2i.yaml | oc create -f -
+    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins-s2i.yaml | oc create -f -
 ```
 
 If working on your own fork/branch, you can point the

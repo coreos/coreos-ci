@@ -43,7 +43,7 @@ software locally, build FCOS with its results overlayed and
 run kola:
 
 ```groovy
-// Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
+// Documentation: https://github.com/coreos/coreos-ci/blob/main/README-upstream-ci.md
 
 cosaPod {
     checkout scm
