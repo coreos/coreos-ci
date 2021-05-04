@@ -10,7 +10,7 @@ https://github.com/coreos/fedora-coreos-pipeline in the
 future.
 
 CoreOS CI uses the same S2I builder defined in the
-[Fedora CoreOS pipeline](https://github.com/coreos/fedora-coreos-pipeline/tree/master/jenkins/master).
+[Fedora CoreOS pipeline](https://github.com/coreos/fedora-coreos-pipeline/tree/main/jenkins/master).
 All build config and plugin changes should happen there.
 
 ### Adding a job
