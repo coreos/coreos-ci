@@ -1,0 +1,10 @@
+# workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1956652
+# should be able to drop this in a future release
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - fileSystemServiceAccountCredential:
+              scope: GLOBAL
+              id: "1a12dfa4-7fc5-47a7-aa17-cc56572a41c7"
+              description: "ServiceAccountToken"
