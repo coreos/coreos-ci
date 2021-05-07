@@ -3,7 +3,7 @@ unclassified:
     libraries:
       - name: coreos
         defaultVersion: master
-        implicit: true
+        implicit: false
         retriever:
           modernSCM:
             scm:
