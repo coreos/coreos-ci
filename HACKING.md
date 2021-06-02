@@ -49,10 +49,10 @@ stringData:
   secret: $SECRET
 ```
 
-Create the CoreOS Bot (coreosbot) GitHub token (these creds
-correspond to the "CoreOS CI" token of coreobot, with just
-`public_repo` and `admin:repo_hook`; XXX: jlebon or bgilbert
-to put it in the shared secrets repo):
+Create the CoreOS Bot (coreosbot) GitHub token secret (this
+corresponds to the "CoreOS CI" token of coreosbot, with just
+`public_repo` and `admin:repo_hook`; these creds are
+available in BitWarden):
 
 ```
 apiVersion: v1
