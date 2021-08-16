@@ -17,8 +17,8 @@ jobs:
                 sh("curl -LO https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/utils.groovy")
                 def utils = load("utils.groovy")
 
-                def url = utils.get_annotation("jenkins", "jenkins-jobs-url")
-                def ref = utils.get_annotation("jenkins", "jenkins-jobs-ref")
+                def url = utils.get_annotation("jenkins-jobs-url")
+                def ref = utils.get_annotation("jenkins-jobs-ref")
                 utils.shwrap("rm -rf source")
                 utils.shwrap("git clone -b ^${ref} ^${url} source")
 
