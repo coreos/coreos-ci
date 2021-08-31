@@ -12,21 +12,30 @@ jobs:
           cps {
             sandbox(true)
             script('''
+              @Library('github.com/coreos/coreos-ci-lib@main') _
+
+              properties([
+                parameters([
+                  booleanParam(name: 'FORCE',
+                               defaultValue: false,
+                               description: 'Whether to redefine existing jobs (make sure to rerun all jobs with triggers to re-activate them)'),
+                ])
+              ])
+
               node {
                 // XXX: hack, should put this in coreos-ci-lib
                 sh("curl -LO https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/utils.groovy")
-                def utils = load("utils.groovy")
-
-                def url = utils.get_annotation("jenkins-jobs-url")
-                def ref = utils.get_annotation("jenkins-jobs-ref")
-                utils.shwrap("rm -rf source")
-                utils.shwrap("git clone -b ^${ref} ^${url} source")
+                def pipeutils = load("utils.groovy")
+                def url = pipeutils.get_annotation("jenkins-jobs-url")
+                def ref = pipeutils.get_annotation("jenkins-jobs-ref")
+                shwrap("rm -rf source")
+                shwrap("git clone -b ^${ref} ^${url} source")
 
                 findFiles(glob: "source/jobs/*.Jenkinsfile").each { file ->
                   def split = file.name.split("\\\\.")
                   assert split[1] == "Jenkinsfile"
                   def jobName = split[0]
-                  jobDsl scriptText: """
+                  jobDsl ignoreExisting: !params.FORCE, scriptText: """
                     pipelineJob("^${jobName}") {
                       definition {
                         cpsScm {
