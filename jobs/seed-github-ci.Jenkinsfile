@@ -13,7 +13,6 @@ repos = [
     "coreos/fedora-coreos-cincinnati",
     "coreos/fedora-coreos-config",
     "coreos/fedora-coreos-pipeline",
-    "coreos/fedora-coreos-streams",
     "coreos/ignition",
     "coreos/ignition-dracut",
     "coreos/rpm-ostree",
