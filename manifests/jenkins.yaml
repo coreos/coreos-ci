@@ -7,23 +7,10 @@ kind: Template
 labels:
   app: coreos-ci
   template: coreos-ci-jenkins-template
+message: A Jenkins service has been created in your project.  Log into Jenkins with
+  your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md
+  contains more information about using this template.
 metadata:
-  annotations:
-    description: |-
-      Jenkins service, with persistent storage.
-
-      NOTE: You must have persistent volumes available in your cluster to use this template.
-    iconClass: icon-jenkins
-    openshift.io/display-name: Jenkins
-    openshift.io/documentation-url: https://docs.okd.io/latest/using_images/other_images/jenkins.html
-    openshift.io/long-description: This template deploys a Jenkins server capable
-      of managing OpenShift Pipeline builds and supporting OpenShift-based oauth login.
-    openshift.io/provider-display-name: Red Hat, Inc.
-    openshift.io/support-url: https://access.redhat.com
-    samples.operator.openshift.io/version: 4.4.10
-    tags: fcos,jenkins,coreos,ci
-  labels:
-    samples.operator.openshift.io/managed: "true"
   name: coreos-ci-jenkins
 objects:
 - apiVersion: v1
@@ -40,17 +27,18 @@ objects:
     to:
       kind: Service
       name: ${JENKINS_SERVICE_NAME}
-# DELTA: we use our own custom PVC
-#- apiVersion: v1
-#  kind: PersistentVolumeClaim
-#  metadata:
-#    name: ${JENKINS_SERVICE_NAME}
-#  spec:
-#    accessModes:
-#    - ReadWriteOnce
-#    resources:
-#      requests:
-#        storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${JENKINS_SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+    # DELTA: support specifying storage class
+    storageClassName: "${STORAGE_CLASS_NAME}"
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -63,6 +51,9 @@ objects:
       name: ${JENKINS_SERVICE_NAME}
     strategy:
       type: Recreate
+      # DELTA: allow 20 mins for pod to be ready to account for slow NFS
+      recreateParams:
+        timeoutSeconds: 1200
     template:
       metadata:
         labels:
@@ -151,15 +142,10 @@ objects:
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         serviceAccountName: ${JENKINS_SERVICE_NAME}
-        securityContext:
-            # DELTA: This is important to ensure the local PVC is
-            # chown'ed to a gid we have access to.
-            fsGroup: 0
         volumes:
         - name: ${JENKINS_SERVICE_NAME}-data
           persistentVolumeClaim:
-            # DELTA: changed from ${JENKINS_SERVICE_NAME} because we use a custom PVC
-            claimName: jenkins-local
+            claimName: ${JENKINS_SERVICE_NAME}
         # DELTA: add a configmap -- see config/jcasc.yaml
         - name: ${JENKINS_SERVICE_NAME}-casc-cfg
           configMap:
@@ -263,7 +249,7 @@ parameters:
   name: VOLUME_CAPACITY
   required: true
   # DELTA: changed from 1Gi
-  value: 10Gi
+  value: 20Gi
 - description: The OpenShift Namespace where the Jenkins ImageStream resides.
   displayName: Jenkins ImageStream Namespace
   name: NAMESPACE
@@ -290,3 +276,8 @@ parameters:
   displayName: Allows use of Jenkins Update Center repository with invalid SSL certificate
   name: JENKINS_UC_INSECURE
   value: "false"
+# DELTA: support specifying storage class
+- description: The storage class to use for the Jenkins PVC. By default, no
+    storage class is specified.
+  name: STORAGE_CLASS_NAME
+  value: ""
