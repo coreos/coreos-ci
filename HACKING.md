@@ -9,15 +9,6 @@ oc new-app --file=manifests/jenkins.yaml
 Use the `NAMESPACE` parameter if you're not targeting one
 named `coreos-ci`.
 
-If on the production instance, also create the custom local
-class PVC:
-
-```
-oc create -f manifests/pvc.yaml
-```
-
-Otherwise, you can create a vanilla PVC of the same name.
-
 Create the JCasC configmap:
 
 ```
