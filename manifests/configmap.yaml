@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Template
+parameters:
+  - description: Git source URI for Jenkins jobs
+    name: JENKINS_JOBS_URL
+    value: https://github.com/coreos/fedora-coreos-pipeline
+  - description: Git branch/tag reference for Jenkins jobs
+    name: JENKINS_JOBS_REF
+    value: main
+objects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: pipeline-config
+    data:
+      jenkins-jobs-url: ${JENKINS_JOBS_URL}
+      jenkins-jobs-ref: ${JENKINS_JOBS_REF}
