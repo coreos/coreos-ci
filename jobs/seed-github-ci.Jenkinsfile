@@ -23,9 +23,7 @@ repos = [
 node { repos.each { repo ->
     def (owner, name) = repo.split('/')
     jobDsl scriptText: """
-        folder('github-ci')
-        folder('github-ci/${owner}')
-        multibranchPipelineJob('github-ci/${repo}') {
+        multibranchPipelineJob('${name}') {
             branchSources {
                 github {
                     // id must be constant so that job updates work correctly
