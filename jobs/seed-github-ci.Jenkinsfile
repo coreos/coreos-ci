@@ -14,7 +14,6 @@ repos = [
     "coreos/fedora-coreos-config",
     "coreos/fedora-coreos-pipeline",
     "coreos/ignition",
-    "coreos/ignition-dracut",
     "coreos/rpm-ostree",
     "coreos/ssh-key-dir",
     "coreos/zincati",
