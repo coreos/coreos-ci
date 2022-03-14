@@ -52,9 +52,9 @@ cosaPod {
 ```
 
 The relevant functions used here are
-[cosaPod](https://github.com/coreos/coreos-ci-lib/blob/coreos-ci/vars/cosaPod.groovy)
+[cosaPod](https://github.com/coreos/coreos-ci-lib/blob/main/vars/cosaPod.groovy)
 and
-[fcosBuild](https://github.com/coreos/coreos-ci-lib/blob/coreos-ci/vars/fcosBuild.groovy).
+[fcosBuild](https://github.com/coreos/coreos-ci-lib/blob/main/vars/fcosBuild.groovy).
 
 In practice, it's likely that the `make: true` functionality
 in `coreos-ci-lib` will be too simplistic. The `fcosBuild`
