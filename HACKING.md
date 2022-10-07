@@ -35,18 +35,31 @@ oc create configmap jenkins-casc-cfg --from-file=jenkins/config
 Create the `github-webhook-shared-secret` secret using `oc
 create -f`. The manifest is available in BitWarden.
 
+### Create coreosbot GitHub token secrets
+
 Create the CoreOS Bot (coreosbot) GitHub token secret (this
 corresponds to the "CoreOS CI" token of coreosbot, with just
 `public_repo` and `admin:repo_hook`; these creds are
-available in BitWarden):
+available in BitWarden).
+
+We create two secrets here. One as a usernamePassword (used by the upstream
+GitHub jobs) and one secretText (used by the GitHub Plugin):
 
 ```
-apiVersion: v1
-kind: Secret
-metadata:
-  name: github-coreosbot-token
-stringData:
-  token: TOKEN
+TOKEN=<TOKEN>
+oc create secret generic github-coreosbot-token-text --from-literal=text=${TOKEN}
+oc label secret/github-coreosbot-token-text \
+    jenkins.io/credentials-type=secretText
+oc annotate secret/github-coreosbot-token-text \
+    jenkins.io/credentials-description="GitHub coreosbot token as text/string"
+
+oc create secret generic github-coreosbot-token-username-password \
+    --from-literal=username=coreosbot \
+    --from-literal=password=${TOKEN}
+oc label secret/github-coreosbot-token-username-password \
+    jenkins.io/credentials-type=usernamePassword
+oc annotate secret/github-coreosbot-token-username-password  \
+    jenkins.io/credentials-description="GitHub coreosbot token as username/password"
 ```
 
 Create the pipeline configmap:

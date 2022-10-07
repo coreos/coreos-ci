@@ -138,10 +138,6 @@ objects:
           - name: github-webhook-shared-secret
             mountPath: /var/run/secrets/github-webhook-shared-secret
             readOnly: true
-          # DELTA: mount GitHub coreosbot token
-          - name: github-coreosbot-token
-            mountPath: /var/run/secrets/github-coreosbot-token
-            readOnly: true
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         serviceAccountName: ${JENKINS_SERVICE_NAME}
@@ -157,10 +153,6 @@ objects:
         - name: github-webhook-shared-secret
           secret:
             secretName: github-webhook-shared-secret
-        # DELTA: add the GitHub coreosbot token
-        - name: github-coreosbot-token
-          secret:
-            secretName: github-coreosbot-token
     triggers:
     - imageChangeParams:
         automatic: true

@@ -29,8 +29,8 @@ node { repos.each { repo ->
                     id("fac233be-96f9-4331-851b-6153fdc9af9b")
                     repoOwner('${owner}')
                     repository('${name}')
-                    checkoutCredentialsId("github-coreosbot-token")
-                    scanCredentialsId("github-coreosbot-token")
+                    checkoutCredentialsId("github-coreosbot-token-username-password")
+                    scanCredentialsId("github-coreosbot-token-username-password")
                 }
             }
             factory {
