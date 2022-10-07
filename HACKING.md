@@ -76,18 +76,21 @@ oc annotate secret/github-coreosbot-token-username-password  \
     jenkins.io/credentials-description="GitHub coreosbot token as username/password"
 ```
 
-Create the pipeline configmap:
+### Create pipeline configmap and cosa imagestream
+
+Run:
 
 ```
-oc new-app --file=manifests/configmap.yaml \
-    --param "JENKINS_JOBS_URL=https://github.com/coreos/coreos-ci"
+oc process -l app=coreos-ci \
+    --param "JENKINS_JOBS_URL=https://github.com/coreos/coreos-ci" \
+    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/pipeline.yaml | oc create -f -
 ```
 
 If working on your own fork/branch, you can point the
 `JENKINS_JOBS_URL` and `JENKINS_JOBS_REF` parameters to
-override the repo in which to look for jobs, and/or
-`JENKINS_S2I_URL` and `JENKINS_S2I_REF` to override the repo
-in which to look for the Jenkins S2I configuration.
+override the repo in which to look for jobs.
+
+### Jenkins
 
 Now we can set up the Jenkins S2I builds. We use the same
 settings as the FCOS pipeline to ensure that the environment
@@ -97,6 +100,11 @@ is the same (notably, Jenkins and plugin versions):
 oc process -l app=coreos-ci \
     -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins-s2i.yaml | oc create -f -
 ```
+
+If working on your own fork/branch, you can point the
+`JENKINS_S2I_URL` and `JENKINS_S2I_REF` parameters to to
+override the repo in which to look for the Jenkins S2I
+configuration.
 
 Then start a build:
 
