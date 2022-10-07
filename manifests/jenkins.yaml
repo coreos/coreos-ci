@@ -134,10 +134,6 @@ objects:
           - name: ${JENKINS_SERVICE_NAME}-casc-cfg
             mountPath: /var/lib/jenkins/configuration-as-code
             readOnly: true
-          # DELTA: mount GitHub webhook shared secret
-          - name: github-webhook-shared-secret
-            mountPath: /var/run/secrets/github-webhook-shared-secret
-            readOnly: true
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         serviceAccountName: ${JENKINS_SERVICE_NAME}
@@ -149,10 +145,6 @@ objects:
         - name: ${JENKINS_SERVICE_NAME}-casc-cfg
           configMap:
             name: jenkins-casc-cfg
-        # DELTA: add the GitHub OAuth creds
-        - name: github-webhook-shared-secret
-          secret:
-            secretName: github-webhook-shared-secret
     triggers:
     - imageChangeParams:
         automatic: true
