@@ -31,9 +31,19 @@ sed -i -e "s,GITHUB_OAUTH_CLIENT_SECRET,${CLIENT_SECRET}," jenkins/config/github
 oc create configmap jenkins-casc-cfg --from-file=jenkins/config
 ```
 
+### Create the GitHub webhook shared secret
 
-Create the `github-webhook-shared-secret` secret using `oc
-create -f`. The manifest is available in BitWarden.
+The current webhook shared secret used is in BitWarden:
+
+```
+# use `echo -n` to make sure no newline is in the secret
+echo -n "$SECRET" > secret
+oc create secret generic github-webhook-shared-secret --from-file=text=secret
+oc label secret/github-webhook-shared-secret \
+    jenkins.io/credentials-type=secretText
+oc annotate secret/github-webhook-shared-secret \
+    jenkins.io/credentials-description="GitHub Webhook Shared Secret"
+```
 
 ### Create coreosbot GitHub token secrets
 
