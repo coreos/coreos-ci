@@ -3,8 +3,8 @@ jenkins:
     github:
       githubWebUri: https://github.com
       githubApiUri: https://api.github.com
-      clientID: ${github-oauth/client-id}
-      clientSecret: ${github-oauth/client-secret}
+      clientID: GITHUB_OAUTH_CLIENT_ID
+      clientSecret: GITHUB_OAUTH_CLIENT_SECRET
       oauthScopes: read:org,user:email
   authorizationStrategy:
     globalMatrix:
