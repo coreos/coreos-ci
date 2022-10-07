@@ -12,12 +12,25 @@ named `coreos-ci`.
 
 Create the JCasC configmap:
 
+### Paste the GitHub OAuth secrets
+
+The GitHub OAuth plugin does not support Jenkins credentials
+so we directly substitute the secret into the JCasC
+configmap. The secret is available in BitWarden.
+
+```
+CLIENT_ID=<SECRET>
+CLIENT_SECRET=<SECRET>
+sed -i -e "s,GITHUB_OAUTH_CLIENT_ID,${CLIENT_ID}," jenkins/config/github-oauth.yaml
+sed -i -e "s,GITHUB_OAUTH_CLIENT_SECRET,${CLIENT_SECRET}," jenkins/config/github-oauth.yaml
+```
+
+### Create the JCasC configmap
+
 ```
 oc create configmap jenkins-casc-cfg --from-file=jenkins/config
 ```
 
-Create the `github-oauth` secret using `oc create -f`. The
-manifest is available in BitWarden.
 
 Create the `github-webhook-shared-secret` secret using `oc
 create -f`. The manifest is available in BitWarden.
@@ -67,7 +80,7 @@ oc start-build jenkins
 And that's it! It's already set up so that jobs will be
 created on first boot, etc...
 
-## GitHub OAuth
+## Moving CoreOS CI: GitHub OAuth
 
 If moving to a new location, you'll need an owner of the
 `coreos` GitHub org to update the callback URL of the CoreOS
