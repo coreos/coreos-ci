@@ -3,14 +3,18 @@
 First, create the Jenkins base infra:
 
 ```
-oc new-app --file=manifests/jenkins.yaml \
-  --param=STORAGE_CLASS_NAME=ocs-storagecluster-ceph-rbd
+oc process -l app=coreos-ci \
+    -p ENABLE_OAUTH=false \
+    -p NAMESPACE=coreos-ci \
+    -p STORAGE_CLASS_NAME=ocs-storagecluster-ceph-rbd \
+    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins.yaml | oc create -f -
 ```
 
-Use the `NAMESPACE` parameter if you're not targeting one
+Change the `NAMESPACE` parameter if you're not targeting one
 named `coreos-ci`.
 
-Create the JCasC configmap:
+We turn off the default OpenShift authentication because we
+will use GitHub instead.
 
 ### Paste the GitHub OAuth secrets
 
