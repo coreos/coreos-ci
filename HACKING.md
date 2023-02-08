@@ -76,7 +76,7 @@ oc annotate secret/github-coreosbot-token-username-password  \
     jenkins.io/credentials-description="GitHub coreosbot token as username/password"
 ```
 
-### Create pipeline configmap and cosa imagestream
+### Create pipeline configmap
 
 Run:
 
@@ -109,7 +109,7 @@ configuration.
 Then start a build:
 
 ```
-oc start-build jenkins
+oc start-build jenkins-s2i
 ```
 
 And that's it! It's already set up so that jobs will be
