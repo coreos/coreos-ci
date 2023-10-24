@@ -203,17 +203,20 @@ if (test_mode) {
     return
 }
 
-def test = null
-stage("Test") {
-    test = build(job: 'test-override', propagate: false, wait: true,
-                 parameters: [
-                    string(name: 'STREAM', value: stream),
-                    string(name: 'OVERRIDES', value: msg.update.url),
-                 ])
-}
+cosaPod(cpu: "0.1", kvm: false) {
+    def test = null
 
-stage("Report") {
-    // XXX: report result to resultsdb
+    stage("Test") {
+        test = build(job: 'test-override', propagate: false, wait: true,
+                     parameters: [
+                        string(name: 'STREAM', value: stream),
+                        string(name: 'OVERRIDES', value: msg.update.url),
+                     ])
+    }
+
+    stage("Report") {
+        // XXX: report result to resultsdb
+    }
 }
 
 // propagate
