@@ -178,8 +178,10 @@ try {
     }
     parallel parallelruns
 
+    currentBuild.description = "[${descPrefix}] ✔️"
     currentBuild.result = 'SUCCESS'
 } catch (e) {
+    currentBuild.description = "[${descPrefix}] ❌"
     currentBuild.result = 'FAILURE'
     throw e
 }}} // cosaPod, timeout, and try finish here
