@@ -206,6 +206,20 @@ if (test_mode) {
 cosaPod(cpu: "0.1", kvm: false) {
     def test = null
 
+    stage("Report Running") {
+        withCredentials([usernamePassword(credentialsId: 'resultsdb-auth',
+                                          usernameVariable: 'RDB_USERNAME',
+                                          passwordVariable: 'RDB_PASSWORD')]) {
+            shwrap("""/usr/lib/coreos-assembler/resultsdb-report \
+                --testcase cosa.build-and-test \
+                --testcase-url ${JENKINS_URL}/job/test-override \
+                --testrun-url ${JENKINS_URL}/job/test-override \
+                --outcome RUNNING --advisory ${msg.update.updateid} \
+                --stream ${stream}
+            """)
+        }
+    }
+
     stage("Test") {
         test = build(job: 'test-override', propagate: false, wait: true,
                      parameters: [
@@ -214,8 +228,27 @@ cosaPod(cpu: "0.1", kvm: false) {
                      ])
     }
 
-    stage("Report") {
-        // XXX: report result to resultsdb
+    stage("Report Completion") {
+        def outcome
+        if (test.result == 'SUCCESS') {
+            outcome = 'PASSED'
+        } else if (test.result == 'UNSTABLE') {
+            outcome = 'NEEDS_INSPECTION'
+        } else {
+            outcome = 'FAILED'
+        }
+        def blueocean_url = "${JENKINS_URL}/blue/organizations/jenkins/test-override/detail/test-override/${test.number}"
+        withCredentials([usernamePassword(credentialsId: 'resultsdb-auth',
+                                          usernameVariable: 'RDB_USERNAME',
+                                          passwordVariable: 'RDB_PASSWORD')]) {
+            shwrap("""/usr/lib/coreos-assembler/resultsdb-report \
+                --testcase cosa.build-and-test \
+                --testcase-url ${JENKINS_URL}/job/test-override \
+                --testrun-url ${blueocean_url} \
+                --outcome ${outcome} --advisory ${msg.update.updateid} \
+                --stream ${stream}
+            """)
+        }
     }
 }
 

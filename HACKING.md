@@ -76,6 +76,22 @@ oc annotate secret/github-coreosbot-token-username-password  \
     jenkins.io/credentials-description="GitHub coreosbot token as username/password"
 ```
 
+### Create ResultsDB authentication secret
+
+Create the ResultsDB authentication secret (available in BitWarden).
+
+```
+RDB_USERNAME=username
+RDB_PASSWORD=password
+oc create secret generic resultsdb-auth \
+    --from-literal=username=${RDB_USERNAME} \
+    --from-literal=password=${RDB_PASSWORD}
+oc label secret/resultsdb-auth \
+    jenkins.io/credentials-type=usernamePassword
+oc annotate secret/resultsdb-auth  \
+    jenkins.io/credentials-description="ResultsDB authentication"
+```
+
 ### Create pipeline configmap
 
 Run:
