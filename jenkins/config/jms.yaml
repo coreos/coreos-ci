@@ -1,0 +1,16 @@
+unclassified:
+  jmsProviders:
+    configs:
+      - rabbitMq:
+          name: "Fedora Messaging"
+          hostname: "rabbitmq.fedoraproject.org"
+          portNumber: 5671
+          virtualHost: "/public_pubsub"
+          exchange: "amq.topic"
+          authenticationMethod:
+            sslCertificate:
+              username: "fedora"
+              keystore: "${JENKINS_HOME}/jms-messaging-stores/keystore.jks"
+              keypwd: "fedora"
+              truststore: "${JENKINS_HOME}/jms-messaging-stores/truststore.jks"
+              trustpwd: "fedora"
