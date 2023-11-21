@@ -250,7 +250,7 @@ cosaPod(cpu: "0.1", kvm: false) {
             """)
         }
     }
-}
 
-// propagate
-currentBuild.result = test.result
+    // propagate
+    currentBuild.result = test.result
+}
