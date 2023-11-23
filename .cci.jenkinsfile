@@ -1,0 +1,32 @@
+// Documentation: https://github.com/coreos/coreos-ci/blob/master/README-upstream-ci.md
+
+properties([
+    // abort previous runs when a PR is updated to save resources
+    disableConcurrentBuilds(abortPrevious: true)
+])
+
+node {
+    checkout scm
+
+    stage("Check Groovy") {
+        // hacky way to convert Jenkinsfiles into a "library" without executing it
+        shwrap("""
+        find . -type f -name '*.Jenkinsfile' -exec sed -i -e '1i\\return this' '{}' +
+        """)
+
+        def files = findFiles(glob: '**/*.groovy') + findFiles(glob: '**/*.Jenkinsfile')
+        def found_error = false
+        files.each {
+            try {
+                println("${it.path}")
+                load(it.path)
+            } catch (e) {
+                found_error = true
+            }
+        }
+
+        if (found_error) {
+            error "Syntax errors found"
+        }
+    }
+}
