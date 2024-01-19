@@ -78,15 +78,42 @@ try {
     }
     currentBuild.description = "[${descPrefix}] Running"
 
+    def arches = pipeutils.get_additional_arches(pipecfg, params.STREAM) as Set
+    // XXX: this should be further intersected with the set of arches relevant
+    // for the test subject
+    arches = arches.intersect(pipeutils.get_supported_additional_arches()).plus("x86_64")
+
+    // Mechanical streams are unlocked; in this case, we want to base our build
+    // on the latest known working build so that the only unknown is the test
+    // subject. Do this unconditionally for now, we can add a param if we want
+    // to be able to disable this heuristic.
+    def build_lock = ""
+    if (stream_info.type == "mechanical") {
+        def builds_raw = shwrapCapture("curl -sSL https://builds.coreos.fedoraproject.org/prod/streams/${params.STREAM}/builds/builds.json")
+        def builds = readJSON text: builds_raw
+        // find newest build with all the arches concerned passing
+        for (build in builds["builds"]) {
+            if (build.arches.containsAll(arches)) {
+                build_lock = build.id
+                break
+            }
+        }
+    }
+
     def branch = pipeutils.get_source_config_ref_for_stream(pipecfg, params.STREAM)
-    def src_config_commit = shwrapCapture("""
-        git ls-remote ${pipecfg.source_config.url} refs/heads/${branch} | cut -d \$'\t' -f 1
-    """)
+    def src_config_commit = ""
+    if (build_lock == "") {
+        src_config_commit = shwrapCapture("""
+            git ls-remote ${pipecfg.source_config.url} refs/heads/${branch} | cut -d \$'\t' -f 1
+        """)
+    } else {
+        def meta_raw = shwrapCapture("curl -sSL https://builds.coreos.fedoraproject.org/prod/streams/${params.STREAM}/builds/${build_lock}/x86_64/meta.json")
+        def meta = readJSON text: meta_raw
+        src_config_commit = meta["coreos-assembler.config-gitrev"]
+    }
     shwrap("cosa init --branch ${branch} --commit=${src_config_commit} ${pipecfg.source_config.url}")
 
     // Initialize the sessions on the remote builders
-    def arches = pipeutils.get_additional_arches(pipecfg, params.STREAM) as Set
-    arches = arches.intersect(pipeutils.get_supported_additional_arches()).plus("x86_64")
     def archinfo = arches.collectEntries{[it, [session: ""]]}
     stage("Initialize Remotes") {
         parallel archinfo.keySet().collectEntries{arch -> [arch, {
@@ -100,6 +127,14 @@ try {
                         cosa init --branch ${branch} --commit=${src_config_commit} ${pipecfg.source_config.url}
                         """)
                     }
+                }
+            }
+            if (build_lock != "") {
+                // fetch the build we'll lock from
+                pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
+                    shwrap("""
+                        cosa buildfetch --stream ${params.STREAM} --build ${build_lock} --file manifest-lock.generated.${arch}.json
+                    """)
                 }
             }
         }]}
@@ -143,11 +178,15 @@ try {
         }
         parallelruns[arch] = {
             pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
+                def autolock_arg = ""
+                if (build_lock != "") {
+                    autolock_arg = "--autolock ${build_lock}"
+                }
                 stage("${arch}:Fetch") {
-                    shwrap("cosa fetch")
+                    shwrap("cosa fetch ${autolock_arg}")
                 }
                 stage("${arch}:Build") {
-                    shwrap("cosa build")
+                    shwrap("cosa build ${autolock_arg}")
                 }
                 def n = ncpus - 1 // remove 1 for upgrade test
                 kola(cosaDir: env.WORKSPACE, parallel: n, arch: arch,
