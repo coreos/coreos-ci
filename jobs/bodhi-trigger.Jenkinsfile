@@ -249,6 +249,9 @@ cosaPod(cpu: "0.1", kvm: false) {
                 --stream ${stream}
             """)
         }
+        if (test.result != 'SUCCESS') {
+            matrixSendMessage(hostname: 'fedora.im', accessTokenCredentialsId: 'CREDS', roomId: 'ROOM', body: "${currentBuild.description} - ${outcome}")
+        }
     }
 
     // propagate
