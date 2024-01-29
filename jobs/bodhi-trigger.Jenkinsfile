@@ -4,29 +4,16 @@
 // - https://github.com/json-path/JsonPath
 // - https://sumiya.page/jpath.html
 
-// XXX: we should move this list to a separate YAML file for knob extensibility
-// in the future (for e.g. which tests to run for each)
-// XXX: one idea is to trigger for all packages in FCOS and only run `basic` by
-// default, and only run more tests for a given subset like the below
-def srpms = [
-    'container-selinux',
-    'glibc',
-    'grub2',
-    'ignition',
-    'kernel',
-    'kexec-tools',
-    'NetworkManager',
-    'ostree',
-    'podman',
-    'rpm-ostree',
-    'rust-afterburn',
-    'rust-coreos-installer',
-    'rust-zincati',
-    'selinux-policy',
-    'systemd'
-]
+// For now, we literally list all the RPMs to trigger on in the JMS selector
+// below. This doesn't scale though. In the future, we'll either use e.g.
+// `critpath_groups` or have a separate listener that triggers this job.
+def srpms
 
 node {
+    checkout scm
+    def testfile = readYaml(file: "bodhi-testing.yaml")
+    srpms = (testfile["gated-srpms"] + testfile["srpms"]).collect {it -> it["name"]})
+
     // XXX: we should drain what we need of pipeutils into coreos-ci-lib
     shwrap("rm -rf pipe && git clone https://github.com/coreos/fedora-coreos-pipeline --depth=1 pipe")
     // these are script global vars
