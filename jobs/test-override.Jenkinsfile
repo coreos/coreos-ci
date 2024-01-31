@@ -24,6 +24,14 @@ properties([
                description: 'Override coreos-assembler image to use',
                defaultValue: "",
                trim: true),
+        string(name: 'TESTS',
+               description: 'Space-separated test patterns to use (or "skip" to skip)',
+               defaultValue: "",
+               trim: true),
+        string(name: 'TESTISO_TESTS',
+               description: 'Space-separated testiso test patterns to use (or "skip" to skip)',
+               defaultValue: "",
+               trim: true),
         booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE',
                      defaultValue: false,
                      description: "Don't error out if upgrade tests fail (temporary)"),
@@ -189,23 +197,28 @@ try {
                 stage("${arch}:Build") {
                     shwrap("cosa build ${autolock_arg}")
                 }
-                def n = ncpus - 1 // remove 1 for upgrade test
-                kola(cosaDir: env.WORKSPACE, parallel: n, arch: arch,
-                     marker: arch, allowUpgradeFail: params.ALLOW_KOLA_UPGRADE_FAILURE)
-                stage("${arch}:Build Metal") {
-                    shwrap("cosa buildextend-metal")
-                    shwrap("cosa buildextend-metal4k")
+                if (params.TESTS != "skip") {
+                    def n = ncpus - 1 // remove 1 for upgrade test
+                    kola(cosaDir: env.WORKSPACE, parallel: n, arch: arch, extraArgs: params.TESTS,
+                         marker: arch, allowUpgradeFail: params.ALLOW_KOLA_UPGRADE_FAILURE)
                 }
-                stage("${arch}:Build Live") {
-                    shwrap("cosa buildextend-live --fast")
-                    // Test metal4k with an uncompressed image and
-                    // metal with a compressed one. Limit to 4G to be
-                    // good neighbours and reduce chances of getting
-                    // OOMkilled.
-                    shwrap("cosa shell -- env XZ_DEFAULTS=--memlimit=4G cosa compress --artifact=metal")
-                }
-                stage("${arch}:kola:testiso") {
-                    kolaTestIso(cosaDir: env.WORKSPACE, arch: arch, marker: arch)
+                if (params.TESTISO_TESTS != "skip") {
+                    stage("${arch}:Build Metal") {
+                        shwrap("cosa buildextend-metal")
+                        shwrap("cosa buildextend-metal4k")
+                    }
+                    stage("${arch}:Build Live") {
+                        shwrap("cosa buildextend-live --fast")
+                        // Test metal4k with an uncompressed image and
+                        // metal with a compressed one. Limit to 4G to be
+                        // good neighbours and reduce chances of getting
+                        // OOMkilled.
+                        shwrap("cosa shell -- env XZ_DEFAULTS=--memlimit=4G cosa compress --artifact=metal")
+                    }
+                    stage("${arch}:kola:testiso") {
+                        kolaTestIso(cosaDir: env.WORKSPACE, arch: arch, marker: arch,
+                                    extraArgs: params.TESTISO_TESTS)
+                    }
                 }
                 // Destroy the remote sessions. We don't need them anymore
                 stage("${arch}:Destroy Remote") {
