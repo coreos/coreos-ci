@@ -78,6 +78,15 @@ try {
     }
     currentBuild.description = "[${descPrefix}] Running"
 
+    // resolve bodhi IDs to koji builds
+    for (id in bodhi_update_ids) {
+        def build_ids = shwrapCapture("curl -sSL https://bodhi.fedoraproject.org/updates/${id} | jq -r .update.builds[].nvr").split() as List
+        if (build_ids.size() == 0) {
+            error("Bodhi update ${id} has no builds!")
+        }
+        koji_build_ids += build_ids
+    }
+
     def arches = pipeutils.get_additional_arches(pipecfg, params.STREAM) as Set
     // XXX: this should be further intersected with the set of arches relevant
     // for the test subject
@@ -147,14 +156,6 @@ try {
             def arch = architecture
             parallelruns[arch] = {
                 pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
-                    for (id in bodhi_update_ids) {
-                        // this would be `bodhi updates download`, but cosa doesn't have it and
-                        // it doesn't seem worth pulling it in just for this
-                        shwrap("""cosa shell -- env -C overrides/rpm sh -c '\
-                                curl -sSL https://bodhi.fedoraproject.org/updates/${id} | \
-                                jq -r .update.builds[].nvr | \
-                                xargs -n 1 koji download-build --arch ${arch} --arch noarch'""")
-                    }
                     for (id in koji_build_ids) {
                         // XXX: I think this will fail for a package that doesn't have noarch
                         // packages nor packages on $arch
