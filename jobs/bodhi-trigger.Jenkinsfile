@@ -8,11 +8,14 @@
 // below. This doesn't scale though. In the future, we'll either use e.g.
 // `critpath_groups` or have a separate listener that triggers this job.
 def srpms
+def testlist
 
 node {
     checkout scm
-    def testfile = readYaml(file: "bodhi-testing.yaml")
-    srpms = (testfile["gated-srpms"] + testfile["srpms"]).collect {it -> it["name"]})
+    def testlist_raw = readYaml(file: "bodhi-testing.yaml")
+    // convert to a dict of { name -> object }
+    testlist = (testlist_raw["gated-srpms"] + testlist_raw["srpms"]).collectEntries {[it["name"], it]}
+    srpms = testlist.keySet() as List
 
     // XXX: we should drain what we need of pipeutils into coreos-ci-lib
     shwrap("rm -rf pipe && git clone https://github.com/coreos/fedora-coreos-pipeline --depth=1 pipe")
@@ -136,10 +139,30 @@ cosaPod(cpu: "0.1", kvm: false) {
     }
 
     stage("Test") {
+        // Let's not try to be fancy; if the update has multiple bundled builds,
+        // just run all the tests. That shouldn't happen very often anyway, so it's not
+        // worth the complexity of trying to combine.
+        def test_patterns = ""
+        def testiso_patterns = ""
+        if (msg.update.builds.size() == 1) {
+            def srpm = msg.update.builds[0].nvr.split('-')[0..-3].join('-')
+            test_patterns += testlist[srpm]['test-patterns'] ?: ""
+            testiso_patterns += testlist[srpm]['testiso-patterns'] ?: ""
+        }
+
+        // always force at least `basic` to run; that way even if all of the
+        // specified tests are denylisted because they're temporarily broken, we
+        // still get a sanity-check that it doesn't break boot
+        if (test_patterns != "") {
+            test_patterns += " basic"
+        }
+
         test = build(job: 'test-override', propagate: false, wait: true,
                      parameters: [
                         string(name: 'STREAM', value: stream),
                         string(name: 'OVERRIDES', value: msg.update.url),
+                        string(name: 'TESTS', value: test_patterns),
+                        string(name: 'TESTISO_TESTS', value: testiso_patterns),
                      ])
     }
 

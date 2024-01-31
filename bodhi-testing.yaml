@@ -1,12 +1,19 @@
 gated-srpms:
     - name: console-login-helper-messages
+      test-patterns: 'ext.config.clhm.*'
+      testiso-patterns: skip
     - name: ignition
     - name: ostree
     - name: rpm-ostree
     - name: rust-afterburn
+      testiso-patterns: skip
     - name: rust-bootupd
+      test-patterns: 'ext.config.boot.*'
     - name: rust-coreos-installer
+      test-patterns: skip
     - name: rust-zincati
+      test-patterns: 'fcos.upgrade.basic'
+      testiso-patterns: skip
 srpms:
     - name: bubblewrap
     - name: containers-common
@@ -19,13 +26,21 @@ srpms:
     - name: grub2
     - name: kernel
     - name: kexec-tools
+      test-patterns: 'ext.config.kdump.*'
+      testiso-patterns: skip
     - name: NetworkManager
     - name: openssh
     - name: moby-engine
+      test-patterns: 'ext.config.docker.*'
+      testiso-patterns: skip
     - name: nmstate
+      test-patterns: 'ext.config.networking.*'
     - name: nss-altfiles
     - name: podman
+      testiso-patterns: skip
     - name: selinux-policy
     - name: systemd
     - name: toolbox
+      test-patterns: 'ext.config.toolbox.*'
+      testiso-patterns: skip
     - name: util-linux
