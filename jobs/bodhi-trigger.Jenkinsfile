@@ -47,39 +47,17 @@ node {
     }
 
     releasevers = stream_to_releasever.values() as Set
-
-    // query which ones use updates-testing; for more context, see
-    // https://github.com/coreos/coreos-ci/pull/49#issuecomment-1769679589
-    bodhi_composed_releasevers = [] as Set
-    pungi_composed_releasevers = [] as Set
-    for (releasever in releasevers) {
-        def url = "https://bodhi.fedoraproject.org/releases/?name=F${releasever}"
-        if (shwrapRc("curl -sSL ${url} | jq -e '.releases[0].composed_by_bodhi'") == 0) {
-            bodhi_composed_releasevers += releasever
-        } else {
-            pungi_composed_releasevers += releasever
-        }
-    }
 }
 
 properties([
   pipelineTriggers([
     ciBuildTrigger(
       noSquash: true,
-      // The list of triggers below is messy; a core principle here is that
-      // we're trying to push as much filtering as possible into the `checks`
-      // so that a job is only actually run when we need to test something.
-      // This is why we have those gnarly `update.builds[].nvr` checks below.
-      // We should be able to simplify this list a lot once we have
-      // https://pagure.io/fedora-ci/general/issue/436.
+      // Note a core principle here is that we're trying to push as much
+      // filtering as possible into the `checks` so that a job is only
+      // actually run when we need to test something. This is why we have those
+      // gnarly `update.builds[].nvr` checks below.
       providerList: [
-        // TL;DR: Effectively triggered when a rawhide/branched update was opened.
-        // Longer explanation: Triggered when an update was pushed to updates-
-        // testing. Since for rawhide (and at the start, branched) updates-
-        // testing doesn't exist, it's immediately triggered on update creation.
-        // We don't care about the non-rawhide case since we don't want to test
-        // when the update is pushed to updates-testing but right away when it's
-        // created (covered by the next trigger below).
         rabbitMQSubscriber(
             name: 'Fedora Messaging',
             overrides: [
@@ -90,61 +68,13 @@ properties([
             checks: [
                 [field: '$.update.release.id_prefix', expectedValue: '^FEDORA$'],
                 // Is this for a release we care about?
-                [field: '$.update.release.name', expectedValue: "^F(${pungi_composed_releasevers.join("|")})\$"],
+                [field: '$.update.release.name', expectedValue: "^F(${releasevers.join("|")})\$"],
                 // Is this for an SRPM we care about? The jsonpath expression
                 // here evaluates to "all builds of type rpm whose nvr matches
                 // 'n-v-r' where 'n' is one of those in $srpms".
                 [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$'],
                 // We handle the retrigger case separately below.
                 [field: '$.re-trigger', expectedValue: '^false$']
-            ]
-        ),
-        // TL;DR: Effectively triggered when a non-rawhide update was opened.
-        // Longer explanation: Triggered when an update was requested to be
-        // pushed to updates-testing. This never happens for rawhide, and for
-        // non-rawhide usually happens shortly after the update is opened.
-        rabbitMQSubscriber(
-            name: 'Fedora Messaging',
-            overrides: [
-                topic: 'org.fedoraproject.prod.bodhi.update.request.testing',
-                queue: '6455c3a4-9194-4cc0-a7f6-79864036ded2'
-            ],
-            checks: [
-                [field: '$.update.release.id_prefix', expectedValue: '^FEDORA$'],
-                [field: '$.update.release.name', expectedValue: "^F(${bodhi_composed_releasevers.join("|")})\$"],
-                [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$']
-            ]
-        ),
-        // Triggered when an update's tests are requested to be rerun.
-        rabbitMQSubscriber(
-            name: 'Fedora Messaging',
-            overrides: [
-                topic: 'org.fedoraproject.prod.bodhi.update.status.testing.koji-build-group.build.complete',
-                queue: '036407bc-20ad-4290-bdee-deeab6ff6d7a'
-            ],
-            checks: [
-                [field: '$.update.release.id_prefix', expectedValue: '^FEDORA$'],
-                [field: '$.update.release.name', expectedValue: "^F(${releasevers.join("|")})\$"],
-                [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$'],
-                // Were we asked to re-run the tests?
-                [field: '$.re-trigger', expectedValue: '^true$']
-            ]
-        ),
-        // Triggered when an update is edited. We only care about the case when
-        // the edit changes the builds in the update (and not e.g. changing
-        // the description).
-        rabbitMQSubscriber(
-            name: 'Fedora Messaging',
-            overrides: [
-                topic: 'org.fedoraproject.prod.bodhi.update.edit',
-                queue: '9a5c5403-0d3f-403c-81b0-e0a6414513b2'
-            ],
-            checks: [
-                [field: '$.update.release.id_prefix', expectedValue: '^FEDORA$'],
-                [field: '$.update.release.name', expectedValue: "^F(${releasevers.join("|")})\$"],
-                [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$'],
-                // Were any builds actually changed?
-                [field: 'concat($.new_builds,$.removed_builds)', expectedValue: '^.*$'],
             ]
         )
       ]
