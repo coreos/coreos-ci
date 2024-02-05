@@ -72,9 +72,7 @@ properties([
                 // Is this for an SRPM we care about? The jsonpath expression
                 // here evaluates to "all builds of type rpm whose nvr matches
                 // 'n-v-r' where 'n' is one of those in $srpms".
-                [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$'],
-                // We handle the retrigger case separately below.
-                [field: '$.re-trigger', expectedValue: '^false$']
+                [field: "\$.update.builds[?(@.type == 'rpm' && @.nvr =~ /^(${srpms.join("|")})-[^-]+-[^-]+\$/)]", expectedValue: '^\\[.+\\]$']
             ]
         )
       ]
