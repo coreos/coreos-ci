@@ -26,12 +26,12 @@ srpms:
     - name: grub2
     - name: kernel
     - name: kexec-tools
-      test-patterns: 'ext.config.kdump.*'
+      test-patterns: '*kdump*'
       testiso-patterns: skip
     - name: NetworkManager
     - name: openssh
     - name: moby-engine
-      test-patterns: 'ext.config.docker.*'
+      test-patterns: '*docker*'
       testiso-patterns: skip
     - name: nmstate
       test-patterns: 'ext.config.networking.*'
@@ -41,6 +41,6 @@ srpms:
     - name: selinux-policy
     - name: systemd
     - name: toolbox
-      test-patterns: 'ext.config.toolbox.*'
+      test-patterns: '*toolbox*'
       testiso-patterns: skip
     - name: util-linux
