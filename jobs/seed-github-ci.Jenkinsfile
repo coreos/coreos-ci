@@ -45,7 +45,7 @@ node { repos.each { repo ->
             triggers {
                 // manually rescan once a day; this is important so that it
                 // picks up on deleted branches/PRs which can be cleaned up
-                cron(60 * 24)
+                cron((60 * 24).toString())
             }
             // things which don't seem to have a nice DSL :(
             configure {
