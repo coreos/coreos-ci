@@ -16,6 +16,7 @@ repos = [
     "coreos/rpm-ostree",
     "coreos/ssh-key-dir",
     "coreos/zincati",
+    "openshift/os",
     "ostreedev/ostree"
 ]
 
