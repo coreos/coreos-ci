@@ -168,10 +168,11 @@ cosaPod(cpu: "0.1", kvm: false) {
 
     stage("Report Completion") {
         def outcome
-        if (test.result == 'SUCCESS') {
+        // treat UNSTABLE as PASSED too; we often have expired snoozed tests
+        // that'll warn and Greenwave/Bodhi treats NEEDS_INSPECTION outcomes
+        // as blocking
+        if (test.result == 'SUCCESS' || test.result == 'UNSTABLE') {
             outcome = 'PASSED'
-        } else if (test.result == 'UNSTABLE') {
-            outcome = 'NEEDS_INSPECTION'
         } else {
             outcome = 'FAILED'
         }
