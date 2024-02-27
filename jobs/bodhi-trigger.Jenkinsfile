@@ -153,7 +153,7 @@ cosaPod(cpu: "0.1", kvm: false) {
         // always force at least `basic` to run; that way even if all of the
         // specified tests are denylisted because they're temporarily broken, we
         // still get a sanity-check that it doesn't break boot
-        if (test_patterns != "") {
+        if (test_patterns != "" && test_patterns != "skip") {
             test_patterns += " basic"
         }
 
