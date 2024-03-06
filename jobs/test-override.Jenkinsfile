@@ -192,7 +192,7 @@ try {
                     autolock_arg = "--autolock ${build_lock}"
                 }
                 stage("${arch}:Fetch") {
-                    shwrap("cosa fetch ${autolock_arg}")
+                    shwrap("cosa fetch --with-cosa-overrides ${autolock_arg}")
                 }
                 stage("${arch}:Build") {
                     shwrap("cosa build ${autolock_arg}")
