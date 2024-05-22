@@ -92,6 +92,20 @@ oc annotate secret/resultsdb-auth  \
     jenkins.io/credentials-description="ResultsDB authentication"
 ```
 
+### Create Fedora Matrix notifications secret
+
+```
+MATRIX_BOT_TOKEN=auth_token
+MATRIX_BOT_WEBHOOK_URL=url
+oc create secret generic matrix-bot-webhook-token \
+    --from-literal=username=${MATRIX_BOT_WEBHOOK} \
+    --from-literal=password=${MATRIX_BOT_TOKEN}
+oc label secret/matrix-bot-webhook-token \
+    jenkins.io/credentials-type=usernamePassword
+oc annotate secret/matrix-bot-webhook-token \
+    jenkins.io/credentials-description="Token for fedora matrix bot webhook"
+```
+
 ### Create pipeline configmap
 
 Run:

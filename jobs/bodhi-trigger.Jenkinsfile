@@ -250,7 +250,7 @@ cosaPod(cpu: "0.1", kvm: false) {
             """)
         }
         if (test.result != 'SUCCESS') {
-            matrixSendMessage(hostname: 'fedora.im', accessTokenCredentialsId: 'CREDS', roomId: 'ROOM', body: "${currentBuild.description} - ${outcome}")
+            pipeutils.matrixSend("${currentBuild.description} - ${outcome}")
         }
     }
 
