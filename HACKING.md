@@ -100,7 +100,7 @@ Create the maubot authentication secret (available in BitWarden under `CoreOS CI
 MATRIX_BOT_TOKEN=auth_token
 MATRIX_BOT_WEBHOOK_URL=url
 oc create secret generic matrix-bot-webhook-token \
-    --from-literal=username=${MATRIX_BOT_WEBHOOK} \
+    --from-literal=username=${MATRIX_BOT_WEBHOOK_URL} \
     --from-literal=password=${MATRIX_BOT_TOKEN}
 oc label secret/matrix-bot-webhook-token \
     jenkins.io/credentials-type=usernamePassword
