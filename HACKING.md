@@ -94,6 +94,8 @@ oc annotate secret/resultsdb-auth  \
 
 ### Create Fedora Matrix notifications secret
 
+Create the maubot authentication secret (available in BitWarden under `CoreOS CI Fedora Matrix Auth`).
+
 ```
 MATRIX_BOT_TOKEN=auth_token
 MATRIX_BOT_WEBHOOK_URL=url

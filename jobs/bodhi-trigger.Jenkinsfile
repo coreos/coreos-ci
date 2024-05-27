@@ -250,7 +250,7 @@ cosaPod(cpu: "0.1", kvm: false) {
             """)
         }
         if (test.result != 'SUCCESS') {
-            pipeutils.matrixSend("${currentBuild.description} - ${outcome}")
+            pipeutils.matrixSend(":fire: [:ocean:](${blueocean_url}) ${currentBuild.description} - ${outcome} ")
         }
     }
 
