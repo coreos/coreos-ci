@@ -189,7 +189,8 @@ cosaPod(cpu: "0.1", kvm: false) {
             """)
         }
         if (test.result != 'SUCCESS') {
-            pipeutils.matrixSend(":fire: [:ocean:](${blueocean_url}) ${currentBuild.description} - ${outcome} ")
+            def bodhi_url="https://bodhi.fedoraproject.org/updates/${msg.update.updateid}"
+            pipeutils.matrixSend("🔥 ${currentBuild.description} - [🌊](${blueocean_url}) [🪷](${bodhi_url})")
         }
     }
 
