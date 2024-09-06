@@ -168,12 +168,15 @@ cosaPod(cpu: "0.1", kvm: false) {
 
     stage("Report Completion") {
         def outcome
+        def emoji
         // treat UNSTABLE as PASSED too; we often have expired snoozed tests
         // that'll warn and Greenwave/Bodhi treats NEEDS_INSPECTION outcomes
         // as blocking
         if (test.result == 'SUCCESS' || test.result == 'UNSTABLE') {
+            emoji = "🟢"
             outcome = 'PASSED'
         } else {
+            emoji = "🔴"
             outcome = 'FAILED'
         }
         def blueocean_url = "${JENKINS_URL}/blue/organizations/jenkins/test-override/detail/test-override/${test.number}"
@@ -188,10 +191,8 @@ cosaPod(cpu: "0.1", kvm: false) {
                 --stream ${stream}
             """)
         }
-        if (test.result != 'SUCCESS') {
-            def bodhi_url="https://bodhi.fedoraproject.org/updates/${msg.update.updateid}"
-            pipeutils.matrixSend("🔥 ${currentBuild.description} - [🌊](${blueocean_url}) [🪷](${bodhi_url})")
-        }
+        def bodhi_url="https://bodhi.fedoraproject.org/updates/${msg.update.updateid}"
+        pipeutils.matrixSend("${emoji} ${currentBuild.description} - [🌊](${blueocean_url}) [🪷](${bodhi_url})")
     }
 
     // propagate
