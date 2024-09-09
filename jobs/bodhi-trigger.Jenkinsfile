@@ -77,8 +77,8 @@ if (raw_message == null) {
     test_mode = true
 }
 
+println("Handling message: ${raw_message}")
 def msg = readJSON(text: raw_message)
-println("Handling message: ${msg}")
 
 // collect streams with matching releasever
 def releasever = msg.update.release.version.toInteger()
