@@ -28,6 +28,12 @@ srpms:
     - name: kexec-tools
       test-patterns: '*kdump*'
       testiso-patterns: skip
+    - name: kdump-utils
+      test-patterns: '*kdump*'
+      testiso-patterns: skip
+    - name: makedumpfile
+      test-patterns: '*kdump*'
+      testiso-patterns: skip
     - name: NetworkManager
     - name: openssh
     - name: moby-engine
