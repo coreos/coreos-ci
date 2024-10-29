@@ -69,6 +69,9 @@ def cosa_img = params.COREOS_ASSEMBLER_IMAGE
 cosa_img = cosa_img ?: pipeutils.get_cosa_img(pipecfg, params.STREAM)
 def stream_info = pipecfg.streams[params.STREAM]
 
+// Grab any environment variables we should set
+def container_env = pipeutils.get_env_vars_for_stream(pipecfg, params.STREAM)
+
 // Keep in sync with build.Jenkinsfile
 def cosa_memory_request_mb = 10.5 * 1024 as Integer
 def ncpus = ((cosa_memory_request_mb - 512) / 1536) as Integer
@@ -77,6 +80,7 @@ currentBuild.description = "[${descPrefix}] Pending"
 
 cosaPod(image: cosa_img,
         cpu: "${ncpus}", memory: "${cosa_memory_request_mb}Mi",
+        env: container_env,
         serviceAccount: "jenkins") {
 timeout(time: 150, unit: 'MINUTES') {
 try {
