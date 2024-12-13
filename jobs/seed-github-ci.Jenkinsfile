@@ -17,7 +17,8 @@ repos = [
     "coreos/ssh-key-dir",
     "coreos/zincati",
     "openshift/os",
-    "ostreedev/ostree"
+    "ostreedev/ostree",
+    "rhkdump/kdump-utils"
 ]
 
 node { repos.each { repo ->
