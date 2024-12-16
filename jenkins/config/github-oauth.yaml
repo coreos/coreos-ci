@@ -13,13 +13,15 @@ jenkins:
       # administer Jenkins
       - "Overall/Administer:coreos*fedora-coreos-tools"
       - "Overall/Administer:coreos*fedora-coreos-releng"
-      # allow anyone in coreos/ostreedev/openshift to cancel and retrigger runs
+      # allow anyone in coreos/ostreedev/openshift/rhkdump to cancel and retrigger runs
       - "Job/Build:coreos"
       - "Job/Build:ostreedev"
       - "Job/Build:openshift"
+      - "Job/Build:rhkdump"
       - "Job/Cancel:coreos"
       - "Job/Cancel:ostreedev"
       - "Job/Cancel:openshift"
+      - "Job/Cancel:rhkdump"
       # anonymous people can only see logs
       - "Overall/Read:anonymous"
       - "Job/Read:anonymous"
