@@ -11,8 +11,10 @@ gated-srpms:
       test-patterns: 'ext.config.boot.*'
     - name: rust-coreos-installer
       test-patterns: skip
+    # For zincati the upgrade test (which always runs) should suffice.
+    # Let's just limit the regular run to the basic test.
     - name: rust-zincati
-      test-patterns: 'fcos.upgrade.basic'
+      test-patterns: 'basic'
       testiso-patterns: skip
 srpms:
     - name: bubblewrap
