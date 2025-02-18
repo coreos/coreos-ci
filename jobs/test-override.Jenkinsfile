@@ -35,6 +35,9 @@ properties([
         booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE',
                      defaultValue: false,
                      description: "Don't error out if upgrade tests fail (temporary)"),
+        booleanParam(name: 'REPORT_TO_RESULTSDB',
+                     defaultValue: false,
+                     description: "Report results to resultsdb for the Bodhi update"),
     ]),
     buildDiscarder(logRotator(
         numToKeepStr: '100',
@@ -62,6 +65,10 @@ for (url in params.OVERRIDES.split()) {
 
 if (bodhi_update_ids.size() == 0 && koji_build_ids.size() == 0) {
     error("no overrides provided")
+}
+
+if (params.REPORT_TO_RESULTSDB && bodhi_update_ids.size() != 1) {
+    error("When requesting resultsdb reporting can only provide one Bodhi URL")
 }
 
 // runtime parameter always wins
@@ -97,6 +104,23 @@ try {
             error("Bodhi update ${id} has no builds!")
         }
         koji_build_ids += build_ids
+    }
+
+    def blueocean_url = "${env.RUN_DISPLAY_URL}"
+    if (params.REPORT_TO_RESULTSDB) {
+        stage("Report Running") {
+            withCredentials([usernamePassword(credentialsId: 'resultsdb-auth',
+                                              usernameVariable: 'RDB_USERNAME',
+                                              passwordVariable: 'RDB_PASSWORD')]) {
+                shwrap("""/usr/lib/coreos-assembler/resultsdb-report    \
+                    --testcase cosa.build-and-test                      \
+                    --testcase-url ${JENKINS_URL}/job/test-override     \
+                    --testrun-url ${blueocean_url}                      \
+                    --outcome RUNNING --advisory ${bodhi_update_ids[0]} \
+                    --stream ${params.STREAM}
+                """)
+            }
+        }
     }
 
     def arches = pipeutils.get_additional_arches(pipecfg, params.STREAM) as Set
@@ -237,4 +261,35 @@ try {
     currentBuild.description = "[${descPrefix}] ❌"
     currentBuild.result = 'FAILURE'
     throw e
-}}} // cosaPod, timeout, and try finish here
+} finally {
+    // If asked to report results to resultsdb then let's do that now.
+    if (params.REPORT_TO_RESULTSDB) {
+        stage("Report Completion") {
+            def outcome
+            def emoji
+            // treat UNSTABLE as PASSED too; we often have expired snoozed tests
+            // that'll warn and Greenwave/Bodhi treats NEEDS_INSPECTION outcomes
+            // as blocking
+            if (currentBuild.result == 'SUCCESS' || currentBuild.result == 'UNSTABLE') {
+                emoji = "🟢"
+                outcome = 'PASSED'
+            } else {
+                emoji = "🔴"
+                outcome = 'FAILED'
+            }
+            withCredentials([usernamePassword(credentialsId: 'resultsdb-auth',
+                                              usernameVariable: 'RDB_USERNAME',
+                                              passwordVariable: 'RDB_PASSWORD')]) {
+                shwrap("""/usr/lib/coreos-assembler/resultsdb-report       \
+                    --testcase cosa.build-and-test                         \
+                    --testcase-url ${JENKINS_URL}/job/test-override        \
+                    --testrun-url ${blueocean_url}                         \
+                    --outcome ${outcome} --advisory ${bodhi_update_ids[0]} \
+                    --stream ${params.STREAM}
+                """)
+            }
+            def bodhi_url="https://bodhi.fedoraproject.org/updates/${bodhi_update_ids[0]}"
+            pipeutils.matrixSend("${emoji} ${descPrefix} - [🌊](${blueocean_url}) [🪷](${bodhi_url})")
+        }
+    }
+}}} // finally, timeout, cosaPod, finish here
