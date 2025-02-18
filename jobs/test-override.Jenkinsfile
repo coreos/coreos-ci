@@ -198,7 +198,7 @@ try {
                 stage("${arch}:Fetch") {
                     shwrap("cosa fetch --with-cosa-overrides ${autolock_arg}")
                 }
-                stage("${arch}:Build") {
+                stage("${arch}:Build OSTree/QEMU") {
                     shwrap("cosa build ${autolock_arg}")
                 }
                 if (params.TESTS != "skip") {
@@ -207,12 +207,8 @@ try {
                          marker: arch, allowUpgradeFail: params.ALLOW_KOLA_UPGRADE_FAILURE)
                 }
                 if (params.TESTISO_TESTS != "skip") {
-                    stage("${arch}:Build Metal") {
-                        shwrap("cosa buildextend-metal")
-                        shwrap("cosa buildextend-metal4k")
-                    }
                     stage("${arch}:Build Live") {
-                        shwrap("cosa buildextend-live --fast")
+                        shwrap("cosa osbuild metal metal4k live")
                         // Test metal4k with an uncompressed image and
                         // metal with a compressed one. Limit to 4G to be
                         // good neighbours and reduce chances of getting
