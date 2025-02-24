@@ -51,6 +51,7 @@ properties([
         rabbitMQSubscriber(
             name: 'Fedora Messaging',
             overrides: [
+                // https://apps.fedoraproject.org/datagrepper/raw?topic=org.fedoraproject.prod.bodhi.update.status.testing.koji-build-group.build.complete&delta=100000
                 topic: 'org.fedoraproject.prod.bodhi.update.status.testing.koji-build-group.build.complete',
                 // https://github.com/jenkinsci/jms-messaging-plugin/issues/262
                 queue: 'eb65f4a0-9daa-4689-9bdb-910158b3abba'
