@@ -115,7 +115,18 @@ if (matching_streams.size() == 1) {
     error("multiple non-devel matching streams found: ${matching_streams}")
 }
 
-currentBuild.description = msg.update.builds[0].nvr
+// Find the builds in the update we care about and update the
+// description with those build NVRs.
+def coreos_builds = []
+for (srpm in srpms) {
+    for (build in msg.update.builds) {
+        if (build.nvr.startsWith(srpm)) {
+            coreos_builds += build.nvr
+        }
+    }
+}
+currentBuild.description = coreos_builds.join(" ")
+
 
 if (test_mode) {
     println("Would trigger test-override with STREAM=${stream}")
@@ -150,6 +161,7 @@ cosaPod(cpu: "0.1", kvm: false) {
                  string(name: 'OVERRIDES', value: msg.update.url),
                  string(name: 'TESTS', value: test_patterns),
                  string(name: 'TESTISO_TESTS', value: testiso_patterns),
+                 string(name: 'DESCRIPTION', value: currentBuild.description),
                  string(name: 'REPORT_TO_RESULTSDB', value: true),
               ])
     }

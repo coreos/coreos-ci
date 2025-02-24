@@ -32,6 +32,10 @@ properties([
                description: 'Space-separated testiso test patterns to use (or "skip" to skip)',
                defaultValue: "",
                trim: true),
+        string(name: 'DESCRIPTION',
+               description: 'Description to use when reporting results in Jenkins and Matrix',
+               defaultValue: "",
+               trim: true),
         booleanParam(name: 'ALLOW_KOLA_UPGRADE_FAILURE',
                      defaultValue: false,
                      description: "Don't error out if upgrade tests fail (temporary)"),
@@ -46,18 +50,17 @@ properties([
     durabilityHint('PERFORMANCE_OPTIMIZED')
 ])
 
-// we'll use the first override as our description
-def descPrefix = ""
+// If the user provided a description we'll start with that. If it's
+// "" then we'll populate it below.
+def descPrefix = params.DESCRIPTION
 
 def bodhi_update_ids = []
 def koji_build_ids = []
 for (url in params.OVERRIDES.split()) {
     if (url.startsWith("https://bodhi.fedoraproject.org/updates/")) {
         bodhi_update_ids += url - "https://bodhi.fedoraproject.org/updates/"
-        descPrefix = descPrefix ?: bodhi_update_ids[0]
     } else if (url.startsWith("https://koji.fedoraproject.org/koji/buildinfo?buildID=")) {
         koji_build_ids += url -  "https://koji.fedoraproject.org/koji/buildinfo?buildID="
-        descPrefix = descPrefix ?: koji_build_ids[0]
     } else {
         error("don't know how to handle override URL $url")
     }
@@ -91,9 +94,13 @@ cosaPod(image: cosa_img,
         serviceAccount: "jenkins") {
 timeout(time: 150, unit: 'MINUTES') {
 try {
-    // resolve to a better title if it's Bodhi
-    if (!bodhi_update_ids.isEmpty()) {
-        descPrefix = shwrapCapture("curl -sSL https://bodhi.fedoraproject.org/updates/${bodhi_update_ids[0]} | jq -r .update.title")
+    // Set a sane build description if none was provided
+    if (descPrefix == "") {
+        if (!bodhi_update_ids.isEmpty()) {
+            descPrefix = shwrapCapture("curl -sSL https://bodhi.fedoraproject.org/updates/${bodhi_update_ids[0]} | jq -r .update.title")
+        } else {
+            descPrefix = koji_build_ids[0]
+        }
     }
     currentBuild.description = "[${descPrefix}] Running"
 
