@@ -162,7 +162,7 @@ cosaPod(cpu: "0.1", kvm: false) {
                  string(name: 'TESTS', value: test_patterns),
                  string(name: 'TESTISO_TESTS', value: testiso_patterns),
                  string(name: 'DESCRIPTION', value: currentBuild.description),
-                 string(name: 'REPORT_TO_RESULTSDB', value: true),
+                 booleanParam(name: 'REPORT_TO_RESULTSDB', value: true),
               ])
     }
 }
