@@ -54,6 +54,8 @@ properties([
 // "" then we'll populate it below.
 def descPrefix = params.DESCRIPTION
 
+def blueocean_url = "${env.RUN_DISPLAY_URL}"
+
 def bodhi_update_ids = []
 def koji_build_ids = []
 for (url in params.OVERRIDES.split()) {
@@ -88,6 +90,7 @@ def ncpus = ((cosa_memory_request_mb - 512) / 1536) as Integer
 
 currentBuild.description = "[${descPrefix}] Pending"
 
+
 cosaPod(image: cosa_img,
         cpu: "${ncpus}", memory: "${cosa_memory_request_mb}Mi",
         env: container_env,
@@ -113,7 +116,6 @@ try {
         koji_build_ids += build_ids
     }
 
-    def blueocean_url = "${env.RUN_DISPLAY_URL}"
     if (params.REPORT_TO_RESULTSDB) {
         stage("Report Running") {
             withCredentials([usernamePassword(credentialsId: 'resultsdb-auth',
