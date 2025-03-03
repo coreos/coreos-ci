@@ -95,7 +95,7 @@ cosaPod(image: cosa_img,
         cpu: "${ncpus}", memory: "${cosa_memory_request_mb}Mi",
         env: container_env,
         serviceAccount: "jenkins") {
-timeout(time: 150, unit: 'MINUTES') {
+timeout(time: 200, unit: 'MINUTES') {
 try {
     // Set a sane build description if none was provided
     if (descPrefix == "") {
