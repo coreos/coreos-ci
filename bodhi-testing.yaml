@@ -2,6 +2,7 @@ gated-srpms:
     - name: console-login-helper-messages
       test-patterns: 'ext.config.clhm.*'
       testiso-patterns: skip
+    - name: grub2
     - name: ignition
     - name: ostree
     - name: rpm-ostree
@@ -25,7 +26,6 @@ srpms:
     - name: dracut
     - name: glib2
     - name: glibc
-    - name: grub2
     - name: kernel
     - name: kexec-tools
       test-patterns: '*kdump*'
