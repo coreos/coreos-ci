@@ -11,7 +11,12 @@ properties([
     parameters([
         string(name: 'OVERRIDES',
                defaultValue: "",
-               description: 'Space-separated list of Bodhi or Koji Build or Koji Task (scratch) URLs'),
+               description: '''Space-separated list of Bodhi or Koji Build or Koji Task (scratch) URLs or COPR Build
+For example:
+- The Bodhi Build URL is https://bodhi.fedoraproject.org/updates/FEDORA-2025-16cced9e85
+- The Koji Build URL is https://koji.fedoraproject.org/koji/buildinfo?buildID=2681652
+- The Koji Task (scratch) URL is https://koji.fedoraproject.org/koji/taskinfo?taskID=132021551
+- To support COPR builds from any COPR repo, the COPR Build is in the format: copr/<build-id>'''),
         choice(name: 'STREAM',
                choices: pipeutils.streams_of_type(pipecfg, 'development') +
                         pipeutils.streams_of_type(pipecfg, 'mechanical'),
@@ -59,10 +64,14 @@ def blueocean_url = "${env.RUN_DISPLAY_URL}"
 def bodhi_update_ids = []
 def koji_build_ids = []
 def koji_scratch_build_ids = []
+def copr_build_ids = []
 
 def bodhi_url_prefix = "https://bodhi.fedoraproject.org/updates/"
 def koji_url_prefix = "https://koji.fedoraproject.org/koji/buildinfo?buildID="
 def koji_scratch_url_prefix = "https://koji.fedoraproject.org/koji/taskinfo?taskID="
+// To support builds from any COPR repo and not just the CoreOS continuous repo
+// check if the prefix is copr/<build-id>
+def copr_build_prefix = "copr/"
 
 for (url in params.OVERRIDES.split()) {
     if (url.startsWith(bodhi_url_prefix)) {
@@ -71,12 +80,14 @@ for (url in params.OVERRIDES.split()) {
         koji_build_ids += url - koji_url_prefix
     } else if (url.startsWith(koji_scratch_url_prefix)) {
         koji_scratch_build_ids += url - koji_scratch_url_prefix
+    } else if (url.startsWith(copr_build_prefix)) {
+        copr_build_ids += url - copr_build_prefix
     } else {
         error("don't know how to handle override URL $url")
     }
 }
 
-if (bodhi_update_ids.size() == 0 && koji_build_ids.size() == 0 && koji_scratch_build_ids.size() == 0) {
+if (bodhi_update_ids.size() == 0 && koji_build_ids.size() == 0 && koji_scratch_build_ids.size() == 0 && copr_build_ids.size() == 0) {
     error("no overrides provided")
 }
 
@@ -111,12 +122,18 @@ try {
             descPrefix = shwrapCapture("curl -sSL https://bodhi.fedoraproject.org/updates/${bodhi_update_ids[0]} | jq -r .update.title")
         } else if (!koji_build_ids.isEmpty()) {
             descPrefix = koji_build_ids[0]
-        } else {
+        } else if (!koji_scratch_build_ids.isEmpty()) {
             descPrefix = shwrapCapture("""
                 koji taskinfo -v -r ${koji_scratch_build_ids[0]} | \
                 grep SRPM: | head -1 | awk -F '/' '{print \$NF}' | sed 's#.src.rpm\$##'
             """)
-            descPrefix = "scratch: + ${descPrefix}"
+            descPrefix = "scratch: ${descPrefix}"
+        } else {
+            descPrefix = shwrapCapture("""
+                curl -sSL 'https://copr.fedorainfracloud.org/api_3/build/${copr_build_ids[0]}' | \
+                jq -r '.source_package | \"\\(.name)-\\(.version)\"'
+            """)
+            descPrefix = "copr: ${descPrefix}"
         }
     }
     currentBuild.description = "[${descPrefix}] Running"
@@ -223,6 +240,20 @@ try {
                     // Download Koji Task (scratch) rpms
                     for (id in koji_scratch_build_ids) {
                         shwrap("cosa shell -- env -C overrides/rpm koji download-task ${id} --arch ${arch} --arch noarch --skip='debug|test'")
+                    }
+                    // Download copr build rpms
+                    for (id in copr_build_ids) {
+                        // get chrootname like fedora-42-x86_64
+                        def manifest_raw = shwrapCapture("cosa shell -- env -C src/config cat manifest.yaml")
+                        def manifest_yaml = readYaml text: manifest_raw
+                        def chrootname = ""
+                        if (manifest_yaml.releasever != "") {
+                            chrootname = "fedora-${manifest_yaml.releasever}-${arch}"
+                        } else {
+                            error("can not find releasever in manifest.yaml")
+                        }
+                        shwrap("cosa shell -- env -C overrides/rpm copr-cli download-build --rpms --chroot ${chrootname} ${id}")
+                        shwrap("cosa shell -- env -C overrides/rpm rsync -av --remove-source-files --exclude='*debug*' --exclude='*test*' --exclude='*src*' ${chrootname}/ .")
                     }
                 }
             }
