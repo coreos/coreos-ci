@@ -11,7 +11,7 @@ properties([
     parameters([
         string(name: 'OVERRIDES',
                defaultValue: "",
-               description: 'Space-separated list of Bodhi or Koji URLs'),
+               description: 'Space-separated list of Bodhi or Koji Build or Koji Task (scratch) URLs'),
         choice(name: 'STREAM',
                choices: pipeutils.streams_of_type(pipecfg, 'development') +
                         pipeutils.streams_of_type(pipecfg, 'mechanical'),
@@ -58,17 +58,25 @@ def blueocean_url = "${env.RUN_DISPLAY_URL}"
 
 def bodhi_update_ids = []
 def koji_build_ids = []
+def koji_scratch_build_ids = []
+
+def bodhi_url_prefix = "https://bodhi.fedoraproject.org/updates/"
+def koji_url_prefix = "https://koji.fedoraproject.org/koji/buildinfo?buildID="
+def koji_scratch_url_prefix = "https://koji.fedoraproject.org/koji/taskinfo?taskID="
+
 for (url in params.OVERRIDES.split()) {
-    if (url.startsWith("https://bodhi.fedoraproject.org/updates/")) {
-        bodhi_update_ids += url - "https://bodhi.fedoraproject.org/updates/"
-    } else if (url.startsWith("https://koji.fedoraproject.org/koji/buildinfo?buildID=")) {
-        koji_build_ids += url -  "https://koji.fedoraproject.org/koji/buildinfo?buildID="
+    if (url.startsWith(bodhi_url_prefix)) {
+        bodhi_update_ids += url - bodhi_url_prefix
+    } else if (url.startsWith(koji_url_prefix)) {
+        koji_build_ids += url - koji_url_prefix
+    } else if (url.startsWith(koji_scratch_url_prefix)) {
+        koji_scratch_build_ids += url - koji_scratch_url_prefix
     } else {
         error("don't know how to handle override URL $url")
     }
 }
 
-if (bodhi_update_ids.size() == 0 && koji_build_ids.size() == 0) {
+if (bodhi_update_ids.size() == 0 && koji_build_ids.size() == 0 && koji_scratch_build_ids.size() == 0) {
     error("no overrides provided")
 }
 
@@ -101,8 +109,14 @@ try {
     if (descPrefix == "") {
         if (!bodhi_update_ids.isEmpty()) {
             descPrefix = shwrapCapture("curl -sSL https://bodhi.fedoraproject.org/updates/${bodhi_update_ids[0]} | jq -r .update.title")
-        } else {
+        } else if (!koji_build_ids.isEmpty()) {
             descPrefix = koji_build_ids[0]
+        } else {
+            descPrefix = shwrapCapture("""
+                koji taskinfo -v -r ${koji_scratch_build_ids[0]} | \
+                grep SRPM: | head -1 | awk -F '/' '{print \$NF}' | sed 's#.src.rpm\$##'
+            """)
+            descPrefix = "scratch: + ${descPrefix}"
         }
     }
     currentBuild.description = "[${descPrefix}] Running"
@@ -205,6 +219,10 @@ try {
                         // XXX: I think this will fail for a package that doesn't have noarch
                         // packages nor packages on $arch
                         shwrap("cosa shell -- env -C overrides/rpm koji download-build ${id} --arch ${arch} --arch noarch")
+                    }
+                    // Download Koji Task (scratch) rpms
+                    for (id in koji_scratch_build_ids) {
+                        shwrap("cosa shell -- env -C overrides/rpm koji download-task ${id} --arch ${arch} --arch noarch --skip='debug|test'")
                     }
                 }
             }
