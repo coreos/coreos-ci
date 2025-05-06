@@ -185,18 +185,18 @@ try {
         }
     }
 
-    def branch = pipeutils.get_source_config_ref_for_stream(pipecfg, params.STREAM)
+    def (url, branch) = pipeutils.get_source_config_for_stream(pipecfg, params.STREAM)
     def src_config_commit = ""
     if (build_lock == "") {
         src_config_commit = shwrapCapture("""
-            git ls-remote ${pipecfg.source_config.url} refs/heads/${branch} | cut -d \$'\t' -f 1
+            git ls-remote ${url} refs/heads/${branch} | cut -d \$'\t' -f 1
         """)
     } else {
         def meta_raw = shwrapCapture("curl -sSL https://builds.coreos.fedoraproject.org/prod/streams/${params.STREAM}/builds/${build_lock}/x86_64/meta.json")
         def meta = readJSON text: meta_raw
         src_config_commit = meta["coreos-assembler.config-gitrev"]
     }
-    shwrap("cosa init --branch ${branch} --commit=${src_config_commit} ${pipecfg.source_config.url}")
+    shwrap("cosa init --branch ${branch} --commit=${src_config_commit} ${url}")
 
     // Initialize the sessions on the remote builders
     def archinfo = arches.collectEntries{[it, [session: ""]]}
@@ -209,7 +209,7 @@ try {
                     """)
                     withEnv(["COREOS_ASSEMBLER_REMOTE_SESSION=${archinfo[arch]['session']}"]) {
                         shwrap("""
-                        cosa init --branch ${branch} --commit=${src_config_commit} ${pipecfg.source_config.url}
+                        cosa init --branch ${branch} --commit=${src_config_commit} ${url}
                         """)
                     }
                 }
