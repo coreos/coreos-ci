@@ -5,13 +5,9 @@ First, create the Jenkins base infra:
 ```
 oc process -l app=coreos-ci \
     -p ENABLE_OAUTH=false \
-    -p NAMESPACE=coreos-ci \
     -p STORAGE_CLASS_NAME=ocs-storagecluster-ceph-rbd \
     -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins.yaml | oc create -f -
 ```
-
-Change the `NAMESPACE` parameter if you're not targeting one
-named `coreos-ci`.
 
 We turn off the default OpenShift authentication because we
 will use GitHub instead.
@@ -122,6 +118,27 @@ If working on your own fork/branch, you can point the
 `JENKINS_JOBS_URL` and `JENKINS_JOBS_REF` parameters to
 override the repo in which to look for jobs.
 
+### Create Dummy root CA certificate secret
+
+The root CA certificate (ca.crt) is required, but not needed for CoreOS CI
+so we create a dummy one here.
+
+```
+cat <<'EOF' > ca.crt
+dummy
+EOF
+```
+Then create the secret:
+
+```
+oc create secret generic additional-root-ca-cert \
+    --from-literal=filename=ca.crt --from-file=data=ca.crt
+oc label secret/additional-root-ca-cert \
+    jenkins.io/credentials-type=secretFile
+oc annotate secret/additional-root-ca-cert \
+    jenkins.io/credentials-description="Dummy Root CA certificate"
+```
+
 ### Jenkins
 
 Now we can set up the Jenkins S2I builds. We use the same
@@ -129,6 +146,10 @@ settings as the FCOS pipeline to ensure that the environment
 is the same (notably, Jenkins and plugin versions):
 
 ```
+oc process -l app=coreos-ci \
+    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins-images.yaml | oc create -f -
+oc process -l app=coreos-ci \
+    -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins-with-cert.yaml | oc create -f -
 oc process -l app=coreos-ci \
     -f https://raw.githubusercontent.com/coreos/fedora-coreos-pipeline/main/manifests/jenkins-s2i.yaml | oc create -f -
 ```
@@ -138,10 +159,12 @@ If working on your own fork/branch, you can point the
 override the repo in which to look for the Jenkins S2I
 configuration.
 
-Then start a build:
+Then start the builds:
 
 ```
-oc start-build jenkins-s2i
+oc start-build --follow jenkins-with-cert
+oc start-build --follow jenkins-agent-base-with-cert
+oc start-build --follow jenkins-s2i
 ```
 
 And that's it! It's already set up so that jobs will be
