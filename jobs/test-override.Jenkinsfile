@@ -280,8 +280,11 @@ try {
                 stage("${arch}:Fetch") {
                     shwrap("cosa fetch --with-cosa-overrides ${autolock_arg}")
                 }
-                stage("${arch}:Build OSTree/QEMU") {
+                stage("${arch}:Build OS Container") {
                     shwrap("cosa build ${autolock_arg}")
+                }
+                stage("${arch}:Build QEMU") {
+                    shwrap("cosa osbuild qemu")
                 }
                 if (params.TESTS != "skip") {
                     def n = ncpus - 1 // remove 1 for upgrade test
