@@ -197,7 +197,7 @@ try {
     } else {
         def meta_raw = shwrapCapture("curl -sSL https://builds.coreos.fedoraproject.org/prod/streams/${params.STREAM}/builds/${build_lock}/x86_64/meta.json")
         def meta = readJSON text: meta_raw
-        src_config_commit = meta["coreos-assembler.config-gitrev"]
+        src_config_commit = meta["coreos-assembler.container-config-git"]["commit"]
     }
     shwrap("cosa init --branch ${branch} --commit=${src_config_commit} ${url}")
 
