@@ -103,9 +103,6 @@ def stream_info = pipecfg.streams[params.STREAM]
 // Grab any environment variables we should set
 def container_env = pipeutils.get_env_vars_for_stream(pipecfg, params.STREAM)
 
-// XXX: Temporarily disable buildah path while we stabilize it in rawhide.
-container_env.remove('COSA_BUILD_WITH_BUILDAH')
-
 // Keep in sync with build.Jenkinsfile
 def cosa_memory_request_mb = 10.5 * 1024 as Integer
 def ncpus = ((cosa_memory_request_mb - 512) / 1536) as Integer
