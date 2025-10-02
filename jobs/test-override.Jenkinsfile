@@ -214,13 +214,14 @@ try {
                     }
                 }
             }
-            if (build_lock != "") {
-                // fetch the build we'll lock from
-                pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
-                    shwrap("""
-                        cosa buildfetch --stream ${params.STREAM} --build ${build_lock} --file manifest-lock.generated.${arch}.json
-                    """)
+            // buildfetch (allows for showing RPM diff)
+            pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
+                def buildfetch_args = ""
+                if (build_lock != "") {
+                    // fetch the build we'll lock from and the associated lockfile
+                    buildfetch_args = "--build ${build_lock} --file manifest-lock.generated.${arch}.json"
                 }
+                shwrap("cosa buildfetch --stream ${params.STREAM} ${buildfetch_args}")
             }
         }]}
     }
@@ -274,14 +275,16 @@ try {
         parallelruns[arch] = {
             pipeutils.withOptionalExistingCosaRemoteSession(arch: arch, session: archinfo[arch]['session']) {
                 def autolock_arg = ""
+                def parent_arg = ""
                 if (build_lock != "") {
                     autolock_arg = "--autolock ${build_lock}"
+                    parent_arg = "--parent-build ${build_lock}"
                 }
                 stage("${arch}:Fetch") {
                     shwrap("cosa fetch --with-cosa-overrides ${autolock_arg}")
                 }
                 stage("${arch}:Build OS Container") {
-                    shwrap("cosa build ${autolock_arg}")
+                    shwrap("cosa build ${autolock_arg} ${parent_arg}")
                 }
                 stage("${arch}:Build QEMU") {
                     shwrap("cosa osbuild qemu")
