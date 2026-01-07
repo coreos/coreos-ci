@@ -284,7 +284,7 @@ try {
                     shwrap("cosa fetch --with-cosa-overrides ${autolock_arg}")
                 }
                 stage("${arch}:Build OS Container") {
-                    shwrap("cosa build ${autolock_arg} ${parent_arg}")
+                    shwrap("cosa build --force ${autolock_arg} ${parent_arg}")
                 }
                 stage("${arch}:Build QEMU") {
                     shwrap("cosa osbuild qemu")
