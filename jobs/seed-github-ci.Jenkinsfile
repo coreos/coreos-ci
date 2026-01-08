@@ -83,6 +83,9 @@ node { repos.each { repo ->
                     'jenkins.branch.buildstrategies.basic.ChangeRequestBuildStrategyImpl' {
                         ignoreTargetOnlyChanges(true)
                     }
+                    // Skip initial builds during the first branch indexing
+                    'jenkins.branch.buildstrategies.basic.SkipInitialBuildOnFirstBranchIndexing' {
+                    }
                 }
             }
         }
