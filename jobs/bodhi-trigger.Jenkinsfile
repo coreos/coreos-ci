@@ -31,9 +31,9 @@ node {
     stream_to_releasever = [:]
     for (st in streams) {
         // not particularly proud of this, but... it'll work for now
-        shwrap("curl -sSLO https://raw.githubusercontent.com/coreos/fedora-coreos-config/${st}/manifest.yaml")
-        def yaml = readYaml(file: "manifest.yaml")
-        stream_to_releasever[st] = yaml.releasever
+        shwrap("curl -sSLO https://raw.githubusercontent.com/coreos/fedora-coreos-config/${st}/build-args.conf")
+        def properties = readProperties(file: "build-args.conf")
+        stream_to_releasever[st] = properties.VERSION.toInteger()
     }
 
     releasevers = stream_to_releasever.values() as Set
